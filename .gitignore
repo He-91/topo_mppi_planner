@@ -1,0 +1,29 @@
+# ROS build files
+build/
+devel/
+*.pyc
+*.swp
+*~
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Backup files
+*~
+*.bak
+*.backup
+
+# Log files
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

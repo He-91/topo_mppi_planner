@@ -1,0 +1,5 @@
+uav_simulator/Utils/rviz_plugins
+/home/developer/ros_ws/ddo-topo-mppi/devel/.private/rviz_plugins/lib/librviz_plugins.so /home/developer/ros_ws/ddo-topo-mppi/devel/lib/librviz_plugins.so
+/home/developer/ros_ws/ddo-topo-mppi/devel/.private/rviz_plugins/lib/pkgconfig/rviz_plugins.pc /home/developer/ros_ws/ddo-topo-mppi/devel/lib/pkgconfig/rviz_plugins.pc
+/home/developer/ros_ws/ddo-topo-mppi/devel/.private/rviz_plugins/share/rviz_plugins/cmake/rviz_pluginsConfig.cmake /home/developer/ros_ws/ddo-topo-mppi/devel/share/rviz_plugins/cmake/rviz_pluginsConfig.cmake
+/home/developer/ros_ws/ddo-topo-mppi/devel/.private/rviz_plugins/share/rviz_plugins/cmake/rviz_pluginsConfig-version.cmake /home/developer/ros_ws/ddo-topo-mppi/devel/share/rviz_plugins/cmake/rviz_pluginsConfig-version.cmake

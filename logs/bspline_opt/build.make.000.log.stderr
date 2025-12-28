@@ -1,0 +1,7 @@
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/bspline_opt/src/bspline_optimizer.cpp: In member function ‘std::vector<std::vector<Eigen::Matrix<double, 3, 1> > > ego_planner::BsplineOptimizer::initControlPoints(Eigen::MatrixXd&, bool)’:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/bspline_opt/src/bspline_optimizer.cpp:50:16: warning: ‘out_id’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   50 |     int in_id, out_id;
+      |                ^~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/bspline_opt/src/bspline_optimizer.cpp:50:9: warning: ‘in_id’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   50 |     int in_id, out_id;
+      |         ^~~~~

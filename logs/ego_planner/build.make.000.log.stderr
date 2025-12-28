@@ -1,0 +1,4 @@
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/planner_manager.cpp: In member function ‘bool ego_planner::EGOPlannerManager::reboundReplan(Eigen::Vector3d, Eigen::Vector3d, Eigen::Vector3d, Eigen::Vector3d, Eigen::Vector3d, bool, bool)’:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/planner_manager.cpp:410:43: warning: comparison of integer expressions of different signedness: ‘size_t’ {aka ‘long unsigned int’} and ‘int’ [-Wsign-compare]
+  410 |                     path_vis.is_best = (i == best_idx);
+      |                                         ~~^~~~~~~~~~~

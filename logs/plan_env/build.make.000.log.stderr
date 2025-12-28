@@ -1,0 +1,7 @@
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_env/src/grid_map.cpp: In member function ‘double GridMap::getDynamicDistance(const Vector3d&, double)’:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_env/src/grid_map.cpp:997:27: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<Eigen::Matrix<double, 3, 1> >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+  997 |     } else if (time_index >= prediction.predicted_positions.size()) {
+      |                ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_env/src/grid_map.cpp:1003:20: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<Eigen::Matrix<double, 3, 1> >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+ 1003 |     if (time_index == prediction.predicted_positions.size() - 1) {
+      |         ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

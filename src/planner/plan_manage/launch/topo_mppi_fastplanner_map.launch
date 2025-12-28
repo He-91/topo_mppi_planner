@@ -1,0 +1,130 @@
+<launch>
+  <!-- size of map, change the size inflate x, y, z according to your application -->
+  <arg name="map_size_x" value="40.0"/>
+  <arg name="map_size_y" value="20.0"/>
+  <arg name="map_size_z" value=" 5.0"/>
+
+  <!-- topic of your odometry such as VIO or LIO -->
+  <arg name="odom_topic" value="/visual_slam/odom" />
+
+  <!-- main algorithm params -->
+  <include file="$(find topo_mppi_planner)/launch/advanced_param.xml">
+
+    <arg name="map_size_x_" value="$(arg map_size_x)"/>
+    <arg name="map_size_y_" value="$(arg map_size_y)"/>
+    <arg name="map_size_z_" value="$(arg map_size_z)"/>
+    <arg name="odometry_topic" value="$(arg odom_topic)"/>
+
+    <!-- camera pose: transform of camera frame in the world frame -->
+    <!-- depth topic: depth image, 640x480 by default -->
+    <!-- don't set cloud_topic if you already set these ones! -->
+    <arg name="camera_pose_topic" value="/pcl_render_node/camera_pose"/>
+    <arg name="depth_topic" value="/pcl_render_node/depth"/>
+
+    <!-- topic of point cloud measurement, such as from LIDAR  -->
+    <!-- don't set camera pose and depth, if you already set this one! -->
+    <arg name="cloud_topic" value="/pcl_render_node/cloud"/>
+
+    <!-- intrinsic params of the depth camera -->
+    <arg name="cx" value="321.04638671875"/>
+    <arg name="cy" value="243.44969177246094"/>
+    <arg name="fx" value="387.229248046875"/>
+    <arg name="fy" value="387.229248046875"/>
+
+    <!-- maximum velocity and acceleration the drone will reach -->
+    <arg name="max_vel" value="2.0" />
+    <arg name="max_acc" value="2.5" />
+
+    <!--always set to 1.5 times grater than sensing horizen-->
+    <arg name="planning_horizon" value="7.5" /> 
+
+    <!-- 1: use 2D Nav Goal to select goal  -->
+    <!-- 2: use global waypoints below  -->
+    <arg name="flight_type" value="1" />
+    
+    <!-- global waypoints -->
+    <!-- It generates a piecewise min-snap traj passing all waypoints -->
+    <arg name="point_num" value="2" />
+
+    <arg name="point0_x" value="19.0" />
+    <arg name="point0_y" value="0.0" />
+    <arg name="point0_z" value="1.0" />
+
+    <arg name="point1_x" value="-19.0" />
+    <arg name="point1_y" value="0.0" />
+    <arg name="point1_z" value="1.0" />
+
+    <arg name="point2_x" value="0.0" />
+    <arg name="point2_y" value="19.0" />
+    <arg name="point2_z" value="1.0" />
+
+    <arg name="point3_x" value="0.0" />
+    <arg name="point3_y" value="-19.0" />
+    <arg name="point3_z" value="1.0" />
+
+    <arg name="point4_x" value="-19.0" />
+    <arg name="point4_y" value="0.0" />
+    <arg name="point4_z" value="1.0" />
+    
+  </include>
+
+  <!-- trajectory server -->
+  <node pkg="topo_mppi_planner" name="traj_server" type="traj_server" output="screen">
+    <remap from="/position_cmd" to="planning/pos_cmd"/>
+
+    <remap from="/odom_world" to="$(arg odom_topic)"/>
+    <param name="traj_server/time_forward" value="1.0" type="double"/>
+  </node>
+
+  <node pkg="waypoint_generator" name="waypoint_generator" type="waypoint_generator" output="screen">
+    <remap from="~odom" to="$(arg odom_topic)"/>        
+    <remap from="~goal" to="/move_base_simple/goal"/>
+    <remap from="~traj_start_trigger" to="/traj_start_trigger" />
+    <param name="waypoint_type" value="manual-lonely-waypoint"/>    
+  </node>
+
+  <!-- use Fast-Planner's simulator and map generator -->
+  <include file="$(find topo_mppi_planner)/launch/simulator.xml">
+    <arg name="map_size_x_" value="$(arg map_size_x)"/>
+    <arg name="map_size_y_" value="$(arg map_size_y)"/>
+    <arg name="map_size_z_" value="$(arg map_size_z)"/>
+    <!-- 减少静态障碍物，为动态障碍物留空间 -->
+    <arg name="c_num" value="10"/>   <!-- 圆形: 20->10 -->
+    <arg name="p_num" value="150"/>  <!-- 柱状: 300->150 -->
+
+    <arg name="odometry_topic" value="$(arg odom_topic)" />
+  </include>
+
+  <!-- 覆盖random_forest的刷新率以同步到30Hz -->
+  <param name="/random_forest/sensing/rate" value="30.0" />
+
+  <!-- ============================================ -->
+  <!-- 动态障碍物生成器                              -->
+  <!-- ============================================ -->
+  <node pkg="map_generator" type="dynamic_obstacle_generator" name="dynamic_obstacle_generator" output="screen">
+    <param name="map/x_size" value="$(arg map_size_x)" />
+    <param name="map/y_size" value="$(arg map_size_y)" />
+    <param name="map/z_size" value="$(arg map_size_z)" />
+    
+    <param name="dynamic_obstacles/update_rate" value="30.0" />
+    <param name="dynamic_obstacles/resolution" value="0.15" />
+    
+    <!-- 各类动态障碍物数量 (优化分布密度) -->
+    <param name="dynamic_obstacles/num_linear" value="3" />     <!-- 直线运动 6->3 -->
+    <param name="dynamic_obstacles/num_circular" value="2" />   <!-- 圆周运动 4->2 -->
+    <param name="dynamic_obstacles/num_pendulum" value="2" />   <!-- 钟摆运动 4->2 -->
+    <param name="dynamic_obstacles/num_random" value="1" />     <!-- 随机游走 2->1 -->
+  </node>
+
+  <!-- ============================================ -->
+  <!-- 点云融合节点（合并静态+动态障碍物）             -->
+  <!-- ============================================ -->
+  <node pkg="map_generator" type="cloud_merger" name="cloud_merger" output="screen">
+    <remap from="~static_cloud" to="/map_generator/global_cloud"/>
+    <remap from="~dynamic_cloud" to="/dynamic_obstacles/cloud"/>
+    <!-- 输出到独立的融合话题 -->
+    <remap from="~merged_cloud" to="/merged_global_map"/>
+    <param name="publish_rate" value="30.0"/>
+  </node>
+
+</launch>

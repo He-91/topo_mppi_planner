@@ -1,0 +1,28 @@
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:3:10: fatal error: ego_planner/Bspline.h: No such file or directory
+    3 | #include "ego_planner/Bspline.h"
+      |          ^~~~~~~~~~~~~~~~~~~~~~~
+compilation terminated.
+make[2]: *** [CMakeFiles/traj_server.dir/build.make:63: CMakeFiles/traj_server.dir/src/traj_server.cpp.o] Error 1
+make[1]: *** [CMakeFiles/Makefile2:1424: CMakeFiles/traj_server.dir/all] Error 2
+make[1]: *** Waiting for unfinished jobs....
+In file included from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/topo_mppi_planner_node.cpp:4:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/include/plan_manage/ego_replan_fsm.h:16:10: fatal error: ego_planner/Bspline.h: No such file or directory
+   16 | #include <ego_planner/Bspline.h>
+      |          ^~~~~~~~~~~~~~~~~~~~~~~
+compilation terminated.
+make[2]: *** [CMakeFiles/topo_mppi_planner_node.dir/build.make:63: CMakeFiles/topo_mppi_planner_node.dir/src/topo_mppi_planner_node.cpp.o] Error 1
+make[2]: *** Waiting for unfinished jobs....
+In file included from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:2:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/include/plan_manage/ego_replan_fsm.h:16:10: fatal error: ego_planner/Bspline.h: No such file or directory
+   16 | #include <ego_planner/Bspline.h>
+      |          ^~~~~~~~~~~~~~~~~~~~~~~
+compilation terminated.
+make[2]: *** [CMakeFiles/topo_mppi_planner_node.dir/build.make:76: CMakeFiles/topo_mppi_planner_node.dir/src/ego_replan_fsm.cpp.o] Error 1
+In file included from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/planner_manager.cpp:2:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/include/plan_manage/planner_manager.h:8:10: fatal error: ego_planner/DataDisp.h: No such file or directory
+    8 | #include <ego_planner/DataDisp.h>
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~
+compilation terminated.
+make[2]: *** [CMakeFiles/topo_mppi_planner_node.dir/build.make:89: CMakeFiles/topo_mppi_planner_node.dir/src/planner_manager.cpp.o] Error 1
+make[1]: *** [CMakeFiles/Makefile2:1255: CMakeFiles/topo_mppi_planner_node.dir/all] Error 2
+make: *** [Makefile:141: all] Error 2

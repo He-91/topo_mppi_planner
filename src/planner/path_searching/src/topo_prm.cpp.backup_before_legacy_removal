@@ -1,0 +1,563 @@
+#include "path_searching/topo_prm.h"
+#include <cmath>
+#include <algorithm>
+
+using namespace std;
+using namespace Eigen;
+
+namespace ego_planner {
+
+TopoPRM::TopoPRM() 
+    : step_size_(0.2), search_radius_(5.0), max_sample_num_(1000), 
+      collision_check_resolution_(0.05), use_tgk_algorithm_(true) {
+    // 🚀 Phase 4: Initialize TGK components
+    bias_sampler_.reset(new BiasSampler());
+    topo_graph_search_.reset(new TopoGraphSearch());
+}
+
+TopoPRM::~TopoPRM() {
+}
+
+void TopoPRM::init(ros::NodeHandle& nh, GridMap::Ptr grid_map) {
+    grid_map_ = grid_map;
+    topo_paths_pub_ = nh.advertise<visualization_msgs::MarkerArray>("/topo_paths", 10);
+    
+    // Get frame_id from node parameter, default to "world" if not set
+    nh.param("grid_map/frame_id", frame_id_, std::string("world"));
+    
+    // 🚀 Phase 4: Get TGK enable flag from parameter
+    nh.param("topo_prm/use_tgk_algorithm", use_tgk_algorithm_, true);
+    
+    // 🚀 Phase 4.5: Get maximum topological paths parameter
+    int max_topo_paths = 5;  // Default: 5 paths
+    nh.param("topo_prm/max_topo_paths", max_topo_paths, 5);
+    
+    if (max_topo_paths < 1) max_topo_paths = 1;
+    if (max_topo_paths > 10) max_topo_paths = 10;  // Limit to 10 for performance
+    
+    // 🚀 Phase 4: Initialize TGK components
+    bias_sampler_->init(nh, grid_map);
+    topo_graph_search_->init(grid_map, bias_sampler_);
+    topo_graph_search_->setMaxTopoPaths(max_topo_paths);  // 🚀 Set max paths
+    
+    ROS_INFO("[TopoPRM] Initialized publisher on topic '/topo_paths'");
+    ROS_INFO("[TopoPRM] Initialized with step_size: %f, search_radius: %f, frame_id: %s", 
+             step_size_, search_radius_, frame_id_.c_str());
+    ROS_INFO("[TopoPRM] 🚀 TGK algorithm: %s", use_tgk_algorithm_ ? "ENABLED" : "DISABLED");
+    ROS_INFO("[TopoPRM] 🚀 Maximum topological paths: %d", max_topo_paths);
+}
+
+bool TopoPRM::searchTopoPaths(const Vector3d& start, const Vector3d& goal,
+                             vector<TopoPath>& topo_paths) {
+    topo_paths.clear();
+    
+    ROS_INFO("[TopoPRM] Searching topological paths from [%.2f, %.2f, %.2f] to [%.2f, %.2f, %.2f]", 
+             start.x(), start.y(), start.z(), goal.x(), goal.y(), goal.z());
+    
+    // 🚀 Phase 4: Use TGK algorithm if enabled
+    vector<TopoPath> candidate_paths;
+    if (use_tgk_algorithm_) {
+        ROS_INFO("[TopoPRM] 🚀 Using TGK algorithm for topological planning");
+        
+        // Use TGK graph search
+        vector<vector<Vector3d>> raw_paths;
+        bool tgk_success = topo_graph_search_->searchTopoPaths(start, goal, raw_paths);
+        
+        if (tgk_success && !raw_paths.empty()) {
+            ROS_INFO("[TopoPRM-TGK] Found %zu topological paths", raw_paths.size());
+            
+            // Convert to TopoPath format and calculate costs
+            for (size_t i = 0; i < raw_paths.size(); ++i) {
+                double cost = calculatePathCost(raw_paths[i]);
+                candidate_paths.emplace_back(raw_paths[i], cost, i);
+            }
+        } else {
+            ROS_WARN("[TopoPRM-TGK] TGK search failed, falling back to legacy method");
+            candidate_paths = findTopoPaths(start, goal);  // Fallback to legacy
+        }
+    } else {
+        ROS_INFO("[TopoPRM] Using legacy TopoPRM algorithm");
+        candidate_paths = findTopoPaths(start, goal);  // Legacy method
+    }
+    
+    if (candidate_paths.empty()) {
+        ROS_WARN("[TopoPRM] No valid topological paths found");
+        return false;
+    }
+    
+    ROS_INFO("[TopoPRM] Generated %zu candidate paths", candidate_paths.size());
+    
+    // Sort paths by cost
+    sort(candidate_paths.begin(), candidate_paths.end(),
+         [](const TopoPath& a, const TopoPath& b) {
+             return a.cost < b.cost;
+         });
+    
+    topo_paths = candidate_paths;
+    
+    // Visualize paths
+    visualizeTopoPaths(topo_paths);
+    
+    ROS_INFO("[TopoPRM] Found %zu topological paths", topo_paths.size());
+    return true;
+}
+
+vector<TopoPath> TopoPRM::findTopoPaths(const Vector3d& start, const Vector3d& goal) {
+    vector<TopoPath> paths;
+    
+    ROS_INFO("[TopoPRM] Checking direct path...");
+    // Direct path (if collision-free)
+    vector<Vector3d> direct_path = {start, goal};
+    if (isPathValid(direct_path)) {
+        double cost = calculatePathCost(direct_path);
+        paths.emplace_back(direct_path, cost, 0);
+        ROS_INFO("[TopoPRM] Direct path is valid, cost: %.3f", cost);
+    } else {
+        ROS_INFO("[TopoPRM] Direct path is blocked, searching for alternative paths");
+    }
+    
+    // Find obstacles along direct line
+    Vector3d dir = (goal - start).normalized();
+    double dist = (goal - start).norm();
+    
+    vector<Vector3d> obstacle_centers;
+    
+    // Sample along direct path to find obstacles
+    for (double t = step_size_; t < dist; t += step_size_) {
+        Vector3d sample_point = start + t * dir;
+        if (grid_map_->getInflateOccupancy(sample_point)) {
+            obstacle_centers.push_back(sample_point);
+        }
+    }
+    
+    ROS_INFO("[TopoPRM] Found %zu obstacles along direct path", obstacle_centers.size());
+    
+    // Remove duplicate nearby obstacle centers
+    vector<Vector3d> filtered_obstacles;
+    for (const auto& obs : obstacle_centers) {
+        bool is_duplicate = false;
+        for (const auto& filtered : filtered_obstacles) {
+            if ((obs - filtered).norm() < search_radius_ * 0.5) {
+                is_duplicate = true;
+                break;
+            }
+        }
+        if (!is_duplicate) {
+            filtered_obstacles.push_back(obs);
+        }
+    }
+    
+    ROS_INFO("[TopoPRM] After filtering: %zu obstacles", filtered_obstacles.size());
+    
+    // Generate alternative paths using Fast-Planner-inspired approach
+    int path_id = 1;
+    int total_attempts = 0;
+    int valid_paths = 0;
+    
+    // For each obstacle, generate multiple alternative paths using different strategies
+    for (const auto& obstacle_center : filtered_obstacles) {
+        // Strategy 1: Circle around obstacle (left and right)
+        for (int side = -1; side <= 1; side += 2) {  // -1 for left, 1 for right
+            total_attempts++;
+            vector<Vector3d> alt_path = generateCircularPath(start, goal, obstacle_center, side);
+            if (!alt_path.empty() && isPathValid(alt_path)) {
+                double cost = calculatePathCost(alt_path);
+                paths.emplace_back(alt_path, cost, path_id++);
+                valid_paths++;
+                ROS_DEBUG("[TopoPRM] Generated circular path %d with cost %.3f", path_id-1, cost);
+            }
+        }
+        
+        // Strategy 2: Over/under obstacle (if 3D environment)
+        for (int vertical = -1; vertical <= 1; vertical += 2) {  // -1 for under, 1 for over
+            total_attempts++;
+            vector<Vector3d> alt_path = generateVerticalPath(start, goal, obstacle_center, vertical);
+            if (!alt_path.empty() && isPathValid(alt_path)) {
+                double cost = calculatePathCost(alt_path);
+                paths.emplace_back(alt_path, cost, path_id++);
+                valid_paths++;
+                ROS_DEBUG("[TopoPRM] Generated vertical path %d with cost %.3f", path_id-1, cost);
+            }
+        }
+        
+        // Strategy 3: Tangent paths (Fast-Planner inspired)
+        vector<Vector3d> tangent_points = generateTangentPoints(start, goal, obstacle_center);
+        for (const auto& tangent_pt : tangent_points) {
+            total_attempts++;
+            vector<Vector3d> alt_path = {start, tangent_pt, goal};
+            if (isPathValid(alt_path)) {
+                double cost = calculatePathCost(alt_path);
+                paths.emplace_back(alt_path, cost, path_id++);
+                valid_paths++;
+                ROS_DEBUG("[TopoPRM] Generated tangent path %d with cost %.3f", path_id-1, cost);
+            }
+        }
+        
+        // Fallback: Keep original four-directional approach for compatibility
+        for (int direction = 0; direction < 4; ++direction) {
+            total_attempts++;
+            vector<Vector3d> alt_path = generateAlternativePath(start, goal, 
+                                                               obstacle_center, direction);
+            if (!alt_path.empty() && isPathValid(alt_path)) {
+                double cost = calculatePathCost(alt_path);
+                paths.emplace_back(alt_path, cost, path_id++);
+                valid_paths++;
+            }
+        }
+    }
+    
+    ROS_INFO("[TopoPRM] Generated %d alternative paths from %d attempts", valid_paths, total_attempts);
+    
+    // If no paths found at all, try to generate a simple path with more points
+    if (paths.empty()) {
+        ROS_WARN("[TopoPRM] No paths found, trying simple interpolated path");
+        vector<Vector3d> simple_path;
+        Vector3d direction = (goal - start).normalized();
+        double distance = (goal - start).norm();
+        
+        // Create path with multiple intermediate points
+        int num_points = std::max(3, (int)(distance / (step_size_ * 2.0)));
+        for (int i = 0; i <= num_points; ++i) {
+            double t = (double)i / num_points;
+            Vector3d point = start + t * distance * direction;
+            simple_path.push_back(point);
+        }
+        
+        // Add this path regardless of collision checking for visualization
+        double cost = calculatePathCost(simple_path);
+        paths.emplace_back(simple_path, cost, 999);
+        ROS_INFO("[TopoPRM] Added simple interpolated path with %zu points", simple_path.size());
+    }
+    
+    return paths;
+}
+
+vector<Vector3d> TopoPRM::generateAlternativePath(const Vector3d& start,
+                                                 const Vector3d& goal,
+                                                 const Vector3d& obstacle_center,
+                                                 int direction) {
+    vector<Vector3d> path;
+    
+    // Calculate avoidance direction
+    Vector3d avoidance_dir;
+    Vector3d to_obstacle = obstacle_center - start;
+    Vector3d forward_dir = (goal - start).normalized();
+    
+    switch (direction) {
+        case 0: // up
+            avoidance_dir = Vector3d(0, 0, 1);
+            break;
+        case 1: // down  
+            avoidance_dir = Vector3d(0, 0, -1);
+            break;
+        case 2: // left (perpendicular to forward direction)
+            avoidance_dir = forward_dir.cross(Vector3d(0, 0, 1)).normalized();
+            break;
+        case 3: // right
+            avoidance_dir = -forward_dir.cross(Vector3d(0, 0, 1)).normalized();
+            break;
+        default:
+            return path; // empty path
+    }
+    
+    // Calculate waypoint to avoid obstacle
+    Vector3d waypoint = obstacle_center + avoidance_dir * search_radius_;
+    
+    // Check if waypoint is valid and try different distances if needed
+    bool waypoint_valid = false;
+    for (double dist = search_radius_ * 0.5; dist <= search_radius_ * 3.0; dist += search_radius_ * 0.5) {
+        waypoint = obstacle_center + avoidance_dir * dist;
+        if (!grid_map_->getInflateOccupancy(waypoint)) {
+            waypoint_valid = true;
+            break;
+        }
+    }
+    
+    // If no valid waypoint found, return empty path
+    if (!waypoint_valid) {
+        ROS_DEBUG("[TopoPRM] Could not find valid waypoint for direction %d", direction);
+        return path; // empty path
+    }
+    
+    // Create path: start -> waypoint -> goal
+    path.push_back(start);
+    path.push_back(waypoint);
+    path.push_back(goal);
+    
+    return path;
+}
+
+bool TopoPRM::isPathValid(const vector<Vector3d>& path) {
+    if (path.size() < 2) return false;
+    
+    for (size_t i = 0; i < path.size() - 1; ++i) {
+        if (!isLineCollisionFree(path[i], path[i + 1])) {
+            ROS_DEBUG("[TopoPRM] Path segment %zu-%zu is blocked", i, i+1);
+            return false;
+        }
+    }
+    return true;
+}
+
+bool TopoPRM::isLineCollisionFree(const Vector3d& start, const Vector3d& end) {
+    Vector3d dir = end - start;
+    double dist = dir.norm();
+    if (dist < 1e-6) return true;
+    
+    dir.normalize();
+    
+    for (double t = 0; t <= dist; t += collision_check_resolution_) {
+        Vector3d point = start + t * dir;
+        if (grid_map_->getInflateOccupancy(point)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+double TopoPRM::calculatePathCost(const vector<Vector3d>& path) {
+    if (path.size() < 2) return std::numeric_limits<double>::max();
+    
+    double length_cost = 0.0;
+    for (size_t i = 0; i < path.size() - 1; ++i) {
+        length_cost += (path[i + 1] - path[i]).norm();
+    }
+    
+    double smoothness_cost = calculateSmoothnessCost(path);
+    double obstacle_cost = calculateObstacleCost(path);
+    
+    return length_cost + 2.0 * smoothness_cost + 5.0 * obstacle_cost;
+}
+
+double TopoPRM::calculateSmoothnessCost(const vector<Vector3d>& path) {
+    if (path.size() < 3) return 0.0;
+    
+    double smoothness_cost = 0.0;
+    for (size_t i = 1; i < path.size() - 1; ++i) {
+        Vector3d v1 = (path[i] - path[i - 1]).normalized();
+        Vector3d v2 = (path[i + 1] - path[i]).normalized();
+        double angle = acos(std::max(-1.0, std::min(1.0, v1.dot(v2))));
+        smoothness_cost += angle;
+    }
+    return smoothness_cost;
+}
+
+double TopoPRM::calculateObstacleCost(const vector<Vector3d>& path) {
+    double obstacle_cost = 0.0;
+    
+    for (const auto& point : path) {
+        // Check distance to nearest obstacle
+        double min_dist = std::numeric_limits<double>::max();
+        
+        // Sample around the point to find nearest obstacle
+        for (double dx = -search_radius_; dx <= search_radius_; dx += step_size_) {
+            for (double dy = -search_radius_; dy <= search_radius_; dy += step_size_) {
+                for (double dz = -search_radius_; dz <= search_radius_; dz += step_size_) {
+                    Vector3d sample = point + Vector3d(dx, dy, dz);
+                    if (grid_map_->getInflateOccupancy(sample)) {
+                        double dist = Vector3d(dx, dy, dz).norm();
+                        min_dist = std::min(min_dist, dist);
+                    }
+                }
+            }
+        }
+        
+        if (min_dist < search_radius_) {
+            obstacle_cost += 1.0 / (min_dist + 0.1);
+        }
+    }
+    
+    return obstacle_cost;
+}
+
+TopoPath TopoPRM::selectBestPath(const vector<TopoPath>& paths) {
+    if (paths.empty()) {
+        return TopoPath();
+    }
+    
+    // Return the path with minimum cost
+    auto best_it = std::min_element(paths.begin(), paths.end(),
+        [](const TopoPath& a, const TopoPath& b) {
+            return a.cost < b.cost;
+        });
+    
+    return *best_it;
+}
+
+void TopoPRM::visualizeTopoPaths(const vector<TopoPath>& paths) {
+    ROS_INFO("[TopoPRM] Visualizing %zu topological paths with frame_id: %s", paths.size(), frame_id_.c_str());
+    
+    visualization_msgs::MarkerArray marker_array;
+    
+    // Clear previous markers
+    visualization_msgs::Marker clear_marker;
+    clear_marker.header.frame_id = frame_id_;
+    clear_marker.header.stamp = ros::Time::now();
+    clear_marker.action = visualization_msgs::Marker::DELETEALL;
+    marker_array.markers.push_back(clear_marker);
+    
+    // Visualize each path with different colors
+    for (size_t i = 0; i < paths.size() && i < 10; ++i) {
+        visualization_msgs::Marker line_marker;
+        line_marker.header.frame_id = frame_id_;
+        line_marker.header.stamp = ros::Time::now();
+        line_marker.ns = "topo_paths";
+        line_marker.id = i;
+        line_marker.type = visualization_msgs::Marker::LINE_STRIP;
+        line_marker.action = visualization_msgs::Marker::ADD;
+        line_marker.pose.orientation.w = 1.0;
+        
+        // Different colors for different paths
+        if (i == 0) {
+            line_marker.color.r = 1.0; line_marker.color.g = 0.0; line_marker.color.b = 0.0;
+        } else if (i == 1) {
+            line_marker.color.r = 0.0; line_marker.color.g = 1.0; line_marker.color.b = 0.0;
+        } else if (i == 2) {
+            line_marker.color.r = 0.0; line_marker.color.g = 0.0; line_marker.color.b = 1.0;
+        } else {
+            line_marker.color.r = 1.0; line_marker.color.g = 0.5; line_marker.color.b = 0.0;
+        }
+        line_marker.color.a = 0.9;
+        line_marker.scale.x = 0.15;  // Make lines thicker and more visible
+        
+        for (const auto& point : paths[i].path) {
+            geometry_msgs::Point p;
+            p.x = point.x();
+            p.y = point.y();
+            p.z = point.z();
+            line_marker.points.push_back(p);
+        }
+        
+        marker_array.markers.push_back(line_marker);
+    }
+    
+    ROS_INFO("[TopoPRM] About to publish MarkerArray with %zu markers", marker_array.markers.size());
+    
+    // Check publisher status
+    if (topo_paths_pub_.getNumSubscribers() > 0) {
+        ROS_INFO("[TopoPRM] Publisher has %u subscribers", topo_paths_pub_.getNumSubscribers());
+    } else {
+        ROS_WARN("[TopoPRM] Publisher has no subscribers!");
+    }
+    
+    topo_paths_pub_.publish(marker_array);
+    
+    // Give some time for publishing
+    ros::Duration(0.01).sleep();
+    
+    ROS_INFO("[TopoPRM] Published MarkerArray with %zu markers to topic '/topo_paths'", marker_array.markers.size());
+}
+
+// Fast-Planner inspired path generation methods
+
+vector<Vector3d> TopoPRM::generateCircularPath(const Vector3d& start,
+                                              const Vector3d& goal,
+                                              const Vector3d& obstacle_center,
+                                              int side) {
+    vector<Vector3d> path;
+    
+    // Get the direction from start to goal
+    Vector3d start_to_goal = goal - start;
+    Vector3d start_to_obs = obstacle_center - start;
+    
+    // Find perpendicular direction in horizontal plane
+    Vector3d horizontal_perp = start_to_goal.cross(Vector3d(0, 0, 1)).normalized();
+    if (horizontal_perp.norm() < 1e-3) {
+        // Start and goal are vertically aligned, use arbitrary horizontal direction
+        horizontal_perp = Vector3d(1, 0, 0);
+    }
+    
+    // Create waypoint that circles around the obstacle
+    double avoidance_radius = search_radius_ * 1.2;
+    Vector3d waypoint = obstacle_center + side * horizontal_perp * avoidance_radius;
+    
+    // Check if waypoint is collision-free and adjust if necessary
+    bool waypoint_valid = false;
+    for (double radius = avoidance_radius; radius <= avoidance_radius * 2.5; radius += search_radius_ * 0.3) {
+        waypoint = obstacle_center + side * horizontal_perp * radius;
+        if (!grid_map_->getInflateOccupancy(waypoint)) {
+            waypoint_valid = true;
+            break;
+        }
+    }
+    
+    if (!waypoint_valid) {
+        return path; // empty path
+    }
+    
+    path.push_back(start);
+    path.push_back(waypoint);
+    path.push_back(goal);
+    
+    return path;
+}
+
+vector<Vector3d> TopoPRM::generateVerticalPath(const Vector3d& start,
+                                              const Vector3d& goal,
+                                              const Vector3d& obstacle_center,
+                                              int vertical) {
+    vector<Vector3d> path;
+    
+    // Create waypoint above or below the obstacle
+    double vertical_offset = search_radius_ * 1.5 * vertical;
+    Vector3d waypoint = obstacle_center + Vector3d(0, 0, vertical_offset);
+    
+    // Ensure waypoint is at a reasonable height
+    if (waypoint.z() < 0.3) {  // Minimum height above ground
+        waypoint.z() = 0.3;
+    } else if (waypoint.z() > 5.0) {  // Maximum reasonable flight height
+        waypoint.z() = 5.0;
+    }
+    
+    // Check if waypoint is collision-free
+    if (grid_map_->getInflateOccupancy(waypoint)) {
+        return path; // empty path
+    }
+    
+    path.push_back(start);
+    path.push_back(waypoint);
+    path.push_back(goal);
+    
+    return path;
+}
+
+vector<Vector3d> TopoPRM::generateTangentPoints(const Vector3d& start,
+                                               const Vector3d& goal,
+                                               const Vector3d& obstacle_center) {
+    vector<Vector3d> tangent_points;
+    
+    // Get the direction from obstacle to start and goal
+    Vector3d obs_to_start = (start - obstacle_center).normalized();
+    Vector3d obs_to_goal = (goal - obstacle_center).normalized();
+    
+    // Calculate tangent points around the obstacle
+    double obstacle_radius = search_radius_ * 0.8;
+    
+    // Generate multiple tangent points around the obstacle
+    for (int i = 0; i < 8; ++i) {  // 8 directions around obstacle
+        double angle = i * M_PI / 4.0;  // 45-degree increments
+        
+        // Rotate the vector from obstacle to start by the angle
+        Vector3d tangent_dir(
+            cos(angle) * obs_to_start.x() - sin(angle) * obs_to_start.y(),
+            sin(angle) * obs_to_start.x() + cos(angle) * obs_to_start.y(),
+            obs_to_start.z()
+        );
+        
+        Vector3d tangent_point = obstacle_center + tangent_dir * (obstacle_radius + search_radius_ * 0.5);
+        
+        // Check if this tangent point makes sense geometrically
+        double dist_to_start = (tangent_point - start).norm();
+        double dist_to_goal = (tangent_point - goal).norm();
+        double direct_dist = (goal - start).norm();
+        
+        // Only add if it's not too much longer than direct path
+        if (dist_to_start + dist_to_goal < direct_dist * 2.0) {
+            tangent_points.push_back(tangent_point);
+        }
+    }
+    
+    return tangent_points;
+}
+
+} // namespace ego_planner

@@ -1,0 +1,58 @@
+<launch>
+  <!-- 最小化GPU测试launch文件 - 只启动规划器 -->
+  
+  <node pkg="topo_mppi_planner" name="topo_mppi_planner_node" type="topo_mppi_planner_node" output="screen">
+    <remap from="~odom_world" to="/visual_slam/odom"/>
+    <remap from="/grid_map/odom" to="/visual_slam/odom"/>
+    <remap from="/grid_map/cloud" to="/pcl_render_node/cloud"/>
+    <remap from="/grid_map/pose" to="/pcl_render_node/camera_pose"/>
+    <remap from="/grid_map/depth" to="/pcl_render_node/depth"/>
+
+    <!-- 参数配置文件 -->
+    <rosparam command="load" file="$(find topo_mppi_planner)/launch/advanced_param.xml"/>
+
+    <!-- FSM状态机参数 -->
+    <param name="fsm/flight_type" value="1" type="int"/>
+    <param name="fsm/thresh_replan" value="1.5" type="double"/>
+    <param name="fsm/thresh_no_replan" value="2.0" type="double"/>
+    <param name="fsm/planning_horizon" value="7.5" type="double"/>
+    <param name="fsm/planning_horizen_time" value="3.0" type="double"/>
+    <param name="fsm/emergency_time_" value="1.0" type="double"/>
+
+    <!-- 测试航点 -->
+    <param name="fsm/waypoint_num" value="2" type="int"/>
+    <param name="fsm/waypoint0_x" value="5.0" type="double"/>
+    <param name="fsm/waypoint0_y" value="0.0" type="double"/>
+    <param name="fsm/waypoint0_z" value="1.0" type="double"/>
+    <param name="fsm/waypoint1_x" value="-5.0" type="double"/>
+    <param name="fsm/waypoint1_y" value="0.0" type="double"/>
+    <param name="fsm/waypoint1_z" value="1.0" type="double"/>
+
+    <!-- Grid Map参数 -->
+    <param name="grid_map/resolution" value="0.1"/>
+    <param name="grid_map/map_size_x" value="40.0"/>
+    <param name="grid_map/map_size_y" value="20.0"/>
+    <param name="grid_map/map_size_z" value="5.0"/>
+    <param name="grid_map/obstacles_inflation" value="0.099"/>
+    <param name="grid_map/local_update_range_x" value="5.5"/>
+    <param name="grid_map/local_update_range_y" value="5.5"/>
+    <param name="grid_map/local_update_range_z" value="4.5"/>
+    <param name="grid_map/ground_height" value="-0.01"/>
+  </node>
+
+  <!-- 简单的静态地图生成器（用于测试） -->
+  <node pkg="map_generator" name="random_forest" type="random_forest" output="screen">
+    <param name="init_state_x" value="0.0"/>
+    <param name="init_state_y" value="0.0"/>
+    <param name="map/x_size" value="40.0"/>
+    <param name="map/y_size" value="20.0"/>
+    <param name="map/z_size" value="5.0"/>
+    <param name="map/obs_num" value="50"/>
+    <param name="map/circle_num" value="5"/>
+    <param name="map/resolution" value="0.1"/>
+    <param name="ObstacleShape/seed" value="1"/>
+    <param name="sensing/radius" value="5.0"/>
+    <param name="sensing/rate" value="10.0"/>
+  </node>
+
+</launch>

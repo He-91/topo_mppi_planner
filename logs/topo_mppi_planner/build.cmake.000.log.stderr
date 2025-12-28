@@ -1,0 +1,18 @@
+** WARNING ** io features related to pcap will be disabled
+** WARNING ** io features related to png will be disabled
+** WARNING ** io features related to libusb-1.0 will be disabled
+CMake Error at /opt/ros/noetic/share/catkin/cmake/catkinConfig.cmake:83 (find_package):
+  Could not find a package configuration file provided by "quadrotor_msgs"
+  with any of the following names:
+
+    quadrotor_msgsConfig.cmake
+    quadrotor_msgs-config.cmake
+
+  Add the installation prefix of "quadrotor_msgs" to CMAKE_PREFIX_PATH or set
+  "quadrotor_msgs_DIR" to a directory containing one of the above files.  If
+  "quadrotor_msgs" provides a separate development package or SDK, be sure it
+  has been installed.
+Call Stack (most recent call first):
+  CMakeLists.txt:29 (find_package)
+
+

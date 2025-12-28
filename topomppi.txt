@@ -1,0 +1,3 @@
+新窗口， docker exec -it 65abafec5dc5 bash
+source devel/setup.bash && roslaunch ego_planner topo_mppi_fastplanner_map.launch
+source devel/setup.bash && export DISPLAY=:0 && rviz -d src/planner/plan_manage/launch/fastplanner_test.rviz

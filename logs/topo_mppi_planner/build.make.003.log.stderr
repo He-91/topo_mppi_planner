@@ -1,0 +1,75 @@
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:15:26: error: ‘topo_mppi_planner::UniformBspline’ has not been declared
+   15 | using topo_mppi_planner::UniformBspline;
+      |                          ^~~~~~~~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:18:8: error: ‘UniformBspline’ was not declared in this scope; did you mean ‘ego_planner::UniformBspline’?
+   18 | vector<UniformBspline> traj_;
+      |        ^~~~~~~~~~~~~~
+      |        ego_planner::UniformBspline
+In file included from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:1:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/bspline_opt/include/bspline_opt/uniform_bspline.h:14:9: note: ‘ego_planner::UniformBspline’ declared here
+   14 |   class UniformBspline
+      |         ^~~~~~~~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:18:22: error: template argument 1 is invalid
+   18 | vector<UniformBspline> traj_;
+      |                      ^
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:18:22: error: template argument 2 is invalid
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp: In function ‘void bsplineCallback(topo_mppi_planner::BsplineConstPtr)’:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:46:3: error: ‘UniformBspline’ was not declared in this scope; did you mean ‘ego_planner::UniformBspline’?
+   46 |   UniformBspline pos_traj(pos_pts, msg->order, 0.1);
+      |   ^~~~~~~~~~~~~~
+      |   ego_planner::UniformBspline
+In file included from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:1:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/bspline_opt/include/bspline_opt/uniform_bspline.h:14:9: note: ‘ego_planner::UniformBspline’ declared here
+   14 |   class UniformBspline
+      |         ^~~~~~~~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:47:3: error: ‘pos_traj’ was not declared in this scope
+   47 |   pos_traj.setKnot(knots);
+      |   ^~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:61:9: error: request for member ‘clear’ in ‘traj_’, which is of non-class type ‘int’
+   61 |   traj_.clear();
+      |         ^~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:62:9: error: request for member ‘push_back’ in ‘traj_’, which is of non-class type ‘int’
+   62 |   traj_.push_back(pos_traj);
+      |         ^~~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:63:9: error: request for member ‘push_back’ in ‘traj_’, which is of non-class type ‘int’
+   63 |   traj_.push_back(traj_[0].getDerivative());
+      |         ^~~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:63:26: error: invalid types ‘int[int]’ for array subscript
+   63 |   traj_.push_back(traj_[0].getDerivative());
+      |                          ^
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:64:9: error: request for member ‘push_back’ in ‘traj_’, which is of non-class type ‘int’
+   64 |   traj_.push_back(traj_[1].getDerivative());
+      |         ^~~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:64:26: error: invalid types ‘int[int]’ for array subscript
+   64 |   traj_.push_back(traj_[1].getDerivative());
+      |                          ^
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:66:27: error: invalid types ‘int[int]’ for array subscript
+   66 |   traj_duration_ = traj_[0].getTimeSum();
+      |                           ^
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp: In function ‘std::pair<double, double> calculate_yaw(double, Eigen::Vector3d&, ros::Time&, ros::Time&)’:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:80:74: error: invalid types ‘int[int]’ for array subscript
+   80 |   Eigen::Vector3d dir = t_cur + time_forward_ <= traj_duration_ ? traj_[0].evaluateDeBoorT(t_cur + time_forward_) - pos : traj_[0].evaluateDeBoorT(traj_duration_) - pos;
+      |                                                                          ^
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:80:130: error: invalid types ‘int[int]’ for array subscript
+   80 |   Eigen::Vector3d dir = t_cur + time_forward_ <= traj_duration_ ? traj_[0].evaluateDeBoorT(t_cur + time_forward_) - pos : traj_[0].evaluateDeBoorT(traj_duration_) - pos;
+      |                                                                                                                                  ^
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp: In function ‘void cmdCallback(const ros::TimerEvent&)’:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:178:18: error: invalid types ‘int[int]’ for array subscript
+  178 |     pos = traj_[0].evaluateDeBoorT(t_cur);
+      |                  ^
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:179:18: error: invalid types ‘int[int]’ for array subscript
+  179 |     vel = traj_[1].evaluateDeBoorT(t_cur);
+      |                  ^
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:180:18: error: invalid types ‘int[int]’ for array subscript
+  180 |     acc = traj_[2].evaluateDeBoorT(t_cur);
+      |                  ^
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:187:20: error: invalid types ‘int[int]’ for array subscript
+  187 |     pos_f = traj_[0].evaluateDeBoorT(tf);
+      |                    ^
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:192:18: error: invalid types ‘int[int]’ for array subscript
+  192 |     pos = traj_[0].evaluateDeBoorT(traj_duration_);
+      |                  ^
+make[2]: *** [CMakeFiles/traj_server.dir/build.make:63: CMakeFiles/traj_server.dir/src/traj_server.cpp.o] Error 1
+make[1]: *** [CMakeFiles/Makefile2:1424: CMakeFiles/traj_server.dir/all] Error 2
+make[1]: *** Waiting for unfinished jobs....
+make: *** [Makefile:141: all] Error 2

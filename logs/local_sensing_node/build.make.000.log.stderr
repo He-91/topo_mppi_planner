@@ -1,0 +1,10 @@
+/home/developer/ros_ws/ddo-topo-mppi/src/uav_simulator/local_sensing/src/device_image.cuh: In instantiation of ‘DeviceImage<ElementType>::~DeviceImage() [with ElementType = int]’:
+/home/developer/ros_ws/ddo-topo-mppi/src/uav_simulator/local_sensing/src/depth_render.cu:179:70:   required from here
+/home/developer/ros_ws/ddo-topo-mppi/src/uav_simulator/local_sensing/src/device_image.cuh:125:67: warning: throw will always call terminate() [-Wterminate]
+  125 |       throw CudaException("Image: unable to free allocated memory.", err);
+      |                                                                   ^
+/home/developer/ros_ws/ddo-topo-mppi/src/uav_simulator/local_sensing/src/device_image.cuh:125:67: note: in C++11 destructors default to noexcept
+/home/developer/ros_ws/ddo-topo-mppi/src/uav_simulator/local_sensing/src/device_image.cuh:128:67: warning: throw will always call terminate() [-Wterminate]
+  128 |       throw CudaException("Image: unable to free allocated memory.", err);
+      |                                                                   ^
+/home/developer/ros_ws/ddo-topo-mppi/src/uav_simulator/local_sensing/src/device_image.cuh:128:67: note: in C++11 destructors default to noexcept

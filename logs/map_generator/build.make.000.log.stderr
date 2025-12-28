@@ -1,0 +1,4 @@
+/home/developer/ros_ws/ddo-topo-mppi/src/uav_simulator/map_generator/src/dynamic_obstacle_generator.cpp: In member function ‘void DynamicObstacleGenerator::estimateVelocity(DynamicObstacle&)’:
+/home/developer/ros_ws/ddo-topo-mppi/src/uav_simulator/map_generator/src/dynamic_obstacle_generator.cpp:555:63: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<Eigen::Matrix<double, 3, 1> >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+  555 |     for (int i = obs.position_history.size() - window_size; i < obs.position_history.size() - 1; ++i) {
+      |                                                             ~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

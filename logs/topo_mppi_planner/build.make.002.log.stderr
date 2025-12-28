@@ -1,0 +1,138 @@
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:27:35: error: variable or field ‘bsplineCallback’ declared void
+   27 | void bsplineCallback(ego_planner::BsplineConstPtr msg)
+      |                                   ^~~~~~~~~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:27:35: error: ‘BsplineConstPtr’ is not a member of ‘ego_planner’; did you mean ‘topo_mppi_planner::BsplineConstPtr’?
+In file included from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:3:
+/home/developer/ros_ws/ddo-topo-mppi/devel/.private/topo_mppi_planner/include/topo_mppi_planner/Bspline.h:82:64: note: ‘topo_mppi_planner::BsplineConstPtr’ declared here
+   82 | typedef boost::shared_ptr< ::topo_mppi_planner::Bspline const> BsplineConstPtr;
+      |                                                                ^~~~~~~~~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp: In function ‘int main(int, char**)’:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/traj_server.cpp:238:72: error: ‘bsplineCallback’ was not declared in this scope
+  238 |   ros::Subscriber bspline_sub = node.subscribe("planning/bspline", 10, bsplineCallback);
+      |                                                                        ^~~~~~~~~~~~~~~
+make[2]: *** [CMakeFiles/traj_server.dir/build.make:63: CMakeFiles/traj_server.dir/src/traj_server.cpp.o] Error 1
+make[1]: *** [CMakeFiles/Makefile2:1424: CMakeFiles/traj_server.dir/all] Error 2
+make[1]: *** Waiting for unfinished jobs....
+In file included from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/topo_mppi_planner_node.cpp:4:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/include/plan_manage/ego_replan_fsm.h:50:18: error: ‘DataDisp’ in namespace ‘ego_planner’ does not name a type
+   50 |     ego_planner::DataDisp data_disp_;
+      |                  ^~~~~~~~
+In file included from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:2:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/include/plan_manage/ego_replan_fsm.h:50:18: error: ‘DataDisp’ in namespace ‘ego_planner’ does not name a type
+   50 |     ego_planner::DataDisp data_disp_;
+      |                  ^~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp: In member function ‘void ego_planner::EGOReplanFSM::init(ros::NodeHandle&)’:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:58:46: error: ‘Bspline’ is not a member of ‘ego_planner’; did you mean ‘topo_mppi_planner::Bspline’?
+   58 |     bspline_pub_ = nh.advertise<ego_planner::Bspline>("/planning/bspline", 10);
+      |                                              ^~~~~~~
+In file included from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/include/plan_manage/ego_replan_fsm.h:16,
+                 from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:2:
+/home/developer/ros_ws/ddo-topo-mppi/devel/.private/topo_mppi_planner/include/topo_mppi_planner/Bspline.h:79:62: note: ‘topo_mppi_planner::Bspline’ declared here
+   79 | typedef ::topo_mppi_planner::Bspline_<std::allocator<void> > Bspline;
+      |                                                              ^~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:58:46: error: ‘Bspline’ is not a member of ‘ego_planner’; did you mean ‘topo_mppi_planner::Bspline’?
+   58 |     bspline_pub_ = nh.advertise<ego_planner::Bspline>("/planning/bspline", 10);
+      |                                              ^~~~~~~
+In file included from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/include/plan_manage/ego_replan_fsm.h:16,
+                 from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:2:
+/home/developer/ros_ws/ddo-topo-mppi/devel/.private/topo_mppi_planner/include/topo_mppi_planner/Bspline.h:79:62: note: ‘topo_mppi_planner::Bspline’ declared here
+   79 | typedef ::topo_mppi_planner::Bspline_<std::allocator<void> > Bspline;
+      |                                                              ^~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:58:78: error: no matching function for call to ‘ros::NodeHandle::advertise<<expression error> >(const char [18], int)’
+   58 |     bspline_pub_ = nh.advertise<ego_planner::Bspline>("/planning/bspline", 10);
+      |                                                                              ^
+In file included from /opt/ros/noetic/include/ros/ros.h:45,
+                 from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/include/plan_manage/ego_replan_fsm.h:9,
+                 from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:2:
+/opt/ros/noetic/include/ros/node_handle.h:249:15: note: candidate: ‘template<class M> ros::Publisher ros::NodeHandle::advertise(const string&, uint32_t, bool)’
+  249 |     Publisher advertise(const std::string& topic, uint32_t queue_size, bool latch = false)
+      |               ^~~~~~~~~
+/opt/ros/noetic/include/ros/node_handle.h:249:15: note:   template argument deduction/substitution failed:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:58:78: error: template argument 1 is invalid
+   58 |     bspline_pub_ = nh.advertise<ego_planner::Bspline>("/planning/bspline", 10);
+      |                                                                              ^
+In file included from /opt/ros/noetic/include/ros/ros.h:45,
+                 from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/include/plan_manage/ego_replan_fsm.h:9,
+                 from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:2:
+/opt/ros/noetic/include/ros/node_handle.h:315:13: note: candidate: ‘template<class M> ros::Publisher ros::NodeHandle::advertise(const string&, uint32_t, const SubscriberStatusCallback&, const SubscriberStatusCallback&, const VoidConstPtr&, bool)’
+  315 |   Publisher advertise(const std::string& topic, uint32_t queue_size,
+      |             ^~~~~~~~~
+/opt/ros/noetic/include/ros/node_handle.h:315:13: note:   template argument deduction/substitution failed:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:58:78: error: template argument 1 is invalid
+   58 |     bspline_pub_ = nh.advertise<ego_planner::Bspline>("/planning/bspline", 10);
+      |                                                                              ^
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:59:48: error: ‘DataDisp’ is not a member of ‘ego_planner’; did you mean ‘topo_mppi_planner::DataDisp’?
+   59 |     data_disp_pub_ = nh.advertise<ego_planner::DataDisp>("/planning/data_display", 100);
+      |                                                ^~~~~~~~
+In file included from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/include/plan_manage/ego_replan_fsm.h:17,
+                 from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:2:
+/home/developer/ros_ws/ddo-topo-mppi/devel/.private/topo_mppi_planner/include/topo_mppi_planner/DataDisp.h:74:63: note: ‘topo_mppi_planner::DataDisp’ declared here
+   74 | typedef ::topo_mppi_planner::DataDisp_<std::allocator<void> > DataDisp;
+      |                                                               ^~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:59:48: error: ‘DataDisp’ is not a member of ‘ego_planner’; did you mean ‘topo_mppi_planner::DataDisp’?
+   59 |     data_disp_pub_ = nh.advertise<ego_planner::DataDisp>("/planning/data_display", 100);
+      |                                                ^~~~~~~~
+In file included from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/include/plan_manage/ego_replan_fsm.h:17,
+                 from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:2:
+/home/developer/ros_ws/ddo-topo-mppi/devel/.private/topo_mppi_planner/include/topo_mppi_planner/DataDisp.h:74:63: note: ‘topo_mppi_planner::DataDisp’ declared here
+   74 | typedef ::topo_mppi_planner::DataDisp_<std::allocator<void> > DataDisp;
+      |                                                               ^~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:59:87: error: no matching function for call to ‘ros::NodeHandle::advertise<<expression error> >(const char [23], int)’
+   59 |     data_disp_pub_ = nh.advertise<ego_planner::DataDisp>("/planning/data_display", 100);
+      |                                                                                       ^
+In file included from /opt/ros/noetic/include/ros/ros.h:45,
+                 from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/include/plan_manage/ego_replan_fsm.h:9,
+                 from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:2:
+/opt/ros/noetic/include/ros/node_handle.h:249:15: note: candidate: ‘template<class M> ros::Publisher ros::NodeHandle::advertise(const string&, uint32_t, bool)’
+  249 |     Publisher advertise(const std::string& topic, uint32_t queue_size, bool latch = false)
+      |               ^~~~~~~~~
+/opt/ros/noetic/include/ros/node_handle.h:249:15: note:   template argument deduction/substitution failed:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:59:87: error: template argument 1 is invalid
+   59 |     data_disp_pub_ = nh.advertise<ego_planner::DataDisp>("/planning/data_display", 100);
+      |                                                                                       ^
+In file included from /opt/ros/noetic/include/ros/ros.h:45,
+                 from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/include/plan_manage/ego_replan_fsm.h:9,
+                 from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:2:
+/opt/ros/noetic/include/ros/node_handle.h:315:13: note: candidate: ‘template<class M> ros::Publisher ros::NodeHandle::advertise(const string&, uint32_t, const SubscriberStatusCallback&, const SubscriberStatusCallback&, const VoidConstPtr&, bool)’
+  315 |   Publisher advertise(const std::string& topic, uint32_t queue_size,
+      |             ^~~~~~~~~
+/opt/ros/noetic/include/ros/node_handle.h:315:13: note:   template argument deduction/substitution failed:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:59:87: error: template argument 1 is invalid
+   59 |     data_disp_pub_ = nh.advertise<ego_planner::DataDisp>("/planning/data_display", 100);
+      |                                                                                       ^
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp: In member function ‘void ego_planner::EGOReplanFSM::execFSMCallback(const ros::TimerEvent&)’:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:382:5: error: ‘data_disp_’ was not declared in this scope; did you mean ‘data_disp_pub_’?
+  382 |     data_disp_.header.stamp = ros::Time::now();
+      |     ^~~~~~~~~~
+      |     data_disp_pub_
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp: In member function ‘bool ego_planner::EGOReplanFSM::callReboundReplan(bool, bool)’:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:478:20: error: ‘Bspline’ is not a member of ‘ego_planner’; did you mean ‘topo_mppi_planner::Bspline’?
+  478 |       ego_planner::Bspline bspline;
+      |                    ^~~~~~~
+In file included from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/include/plan_manage/ego_replan_fsm.h:16,
+                 from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:2:
+/home/developer/ros_ws/ddo-topo-mppi/devel/.private/topo_mppi_planner/include/topo_mppi_planner/Bspline.h:79:62: note: ‘topo_mppi_planner::Bspline’ declared here
+   79 | typedef ::topo_mppi_planner::Bspline_<std::allocator<void> > Bspline;
+      |                                                              ^~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:479:7: error: ‘bspline’ was not declared in this scope; did you mean ‘splice’?
+  479 |       bspline.order = 3;
+      |       ^~~~~~~
+      |       splice
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp: In member function ‘bool ego_planner::EGOReplanFSM::callEmergencyStop(Eigen::Vector3d)’:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:517:18: error: ‘Bspline’ is not a member of ‘ego_planner’; did you mean ‘topo_mppi_planner::Bspline’?
+  517 |     ego_planner::Bspline bspline;
+      |                  ^~~~~~~
+In file included from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/include/plan_manage/ego_replan_fsm.h:16,
+                 from /home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:2:
+/home/developer/ros_ws/ddo-topo-mppi/devel/.private/topo_mppi_planner/include/topo_mppi_planner/Bspline.h:79:62: note: ‘topo_mppi_planner::Bspline’ declared here
+   79 | typedef ::topo_mppi_planner::Bspline_<std::allocator<void> > Bspline;
+      |                                                              ^~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/plan_manage/src/ego_replan_fsm.cpp:518:5: error: ‘bspline’ was not declared in this scope; did you mean ‘splice’?
+  518 |     bspline.order = 3;
+      |     ^~~~~~~
+      |     splice
+make[2]: *** [CMakeFiles/topo_mppi_planner_node.dir/build.make:63: CMakeFiles/topo_mppi_planner_node.dir/src/topo_mppi_planner_node.cpp.o] Error 1
+make[2]: *** Waiting for unfinished jobs....
+make[2]: *** [CMakeFiles/topo_mppi_planner_node.dir/build.make:76: CMakeFiles/topo_mppi_planner_node.dir/src/ego_replan_fsm.cpp.o] Error 1
+make[1]: *** [CMakeFiles/Makefile2:1255: CMakeFiles/topo_mppi_planner_node.dir/all] Error 2
+make: *** [Makefile:141: all] Error 2

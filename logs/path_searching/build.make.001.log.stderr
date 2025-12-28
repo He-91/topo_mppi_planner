@@ -1,0 +1,32 @@
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/path_searching/src/topo_prm.cpp: In constructor ‘ego_planner::TopoPRM::TopoPRM()’:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/path_searching/src/topo_prm.cpp:15:1: warning:   when initialized here [-Wreorder]
+   15 | TopoPRM::TopoPRM()
+      | ^~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/path_searching/src/topo_prm.cpp: In member function ‘void ego_planner::TopoPRM::shortcutPath(std::vector<Eigen::Matrix<double, 3, 1> >, int, int)’:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/path_searching/src/topo_prm.cpp:855:17: error: ‘dist’ was not declared in this scope
+  855 |                 dist = grid_map_->getDistanceWithGrad(dis_path[i], grad);
+      |                 ^~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/path_searching/src/topo_prm.cpp: In member function ‘void ego_planner::TopoPRM::shortcutPaths()’:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/path_searching/src/topo_prm.cpp:891:27: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<std::vector<Eigen::Matrix<double, 3, 1> > >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+  891 |         for (int i = 0; i < raw_paths_.size(); ++i) {
+      |                         ~~^~~~~~~~~~~~~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/path_searching/src/topo_prm.cpp:894:27: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<std::vector<Eigen::Matrix<double, 3, 1> > >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+  894 |         for (int i = 0; i < raw_paths_.size(); ++i) {
+      |                         ~~^~~~~~~~~~~~~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/path_searching/src/topo_prm.cpp:898:27: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<std::vector<Eigen::Matrix<double, 3, 1> > >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+  898 |         for (int i = 0; i < raw_paths_.size(); ++i) {
+      |                         ~~^~~~~~~~~~~~~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/path_searching/src/topo_prm.cpp: In member function ‘std::vector<Eigen::Matrix<double, 3, 1> > ego_planner::TopoPRM::discretizePath(const std::vector<Eigen::Matrix<double, 3, 1> >&)’:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/path_searching/src/topo_prm.cpp:929:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<Eigen::Matrix<double, 3, 1> >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+  929 |     for (int i = 0; i < path.size() - 1; ++i) {
+      |                     ~~^~~~~~~~~~~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/path_searching/src/topo_prm.cpp:935:15: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<Eigen::Matrix<double, 3, 1> >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+  935 |         if (i != path.size() - 2) {
+      |             ~~^~~~~~~~~~~~~~~~~~
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/path_searching/src/topo_prm.cpp: In member function ‘std::vector<std::vector<Eigen::Matrix<double, 3, 1> > > ego_planner::TopoPRM::discretizePaths(std::vector<std::vector<Eigen::Matrix<double, 3, 1> > >&)’:
+/home/developer/ros_ws/ddo-topo-mppi/src/planner/path_searching/src/topo_prm.cpp:946:23: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector<std::vector<Eigen::Matrix<double, 3, 1> > >::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+  946 |     for (int i = 0; i < paths.size(); ++i) {
+      |                     ~~^~~~~~~~~~~~~~
+make[2]: *** [CMakeFiles/path_searching.dir/build.make:76: CMakeFiles/path_searching.dir/src/topo_prm.cpp.o] Error 1
+make[1]: *** [CMakeFiles/Makefile2:587: CMakeFiles/path_searching.dir/all] Error 2
+make: *** [Makefile:141: all] Error 2
