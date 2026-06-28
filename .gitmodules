@@ -1,0 +1,19 @@
+[submodule "packages/Fast-Planner"]
+	path = packages/Fast-Planner
+	url = https://github.com/He-91/Fast-Planner.git
+	ignore = dirty
+
+[submodule "packages/Intent-MPC"]
+	path = packages/Intent-MPC
+	url = https://github.com/Zhefan-Xu/Intent-MPC.git
+	ignore = dirty
+
+[submodule "packages/TGK-Planner"]
+	path = packages/TGK-Planner
+	url = https://github.com/ZJU-FAST-Lab/TGK-Planner.git
+	ignore = dirty
+
+[submodule "packages/ego-planner"]
+	path = packages/ego-planner
+	url = https://github.com/He-91/ego-planner.git
+	ignore = dirty

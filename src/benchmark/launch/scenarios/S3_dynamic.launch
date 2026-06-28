@@ -1,0 +1,141 @@
+<!--
+  Scenario S3: Dynamic Obstacles
+  - 40x20m map, moderate static obstacles + dynamic obstacles
+  - Tests reactive avoidance of moving obstacles
+  - 150 static pillars + 10 circles + 3 linear + 2 circular + 2 pendulum + 1 random dynamic obstacles
+  - Topo-MPPI's specialty scenario (dynamic obstacle detection + MPPI)
+  - Goal: (-19, 0) -> (19, 0)
+  
+  NOTE: Only DDO uses dynamic_obstacle_generator + cloud_merger.
+        Other planners will see only the static map (they don't have dynamic obstacle handling).
+        This demonstrates DDO's advantage in dynamic environments.
+-->
+<launch>
+  <arg name="map_size_x" default="40.0"/>
+  <arg name="map_size_y" default="20.0"/>
+  <arg name="map_size_z" default="5.0"/>
+  <arg name="seed" default="42"/>
+
+  <arg name="init_x" default="-19.0"/>
+  <arg name="init_y" default="0.0"/>
+  <arg name="init_z" default="1.0"/>
+
+  <arg name="goal_x" default="19.0"/>
+  <arg name="goal_y" default="0.0"/>
+  <arg name="goal_z" default="1.0"/>
+
+  <arg name="odom_topic" default="/visual_slam/odom"/>
+
+  <!-- Flag: set to true for DDO method which uses dynamic obstacle generator -->
+  <arg name="use_dynamic_obstacles" default="false"/>
+
+  <!-- ===== Static Map ===== -->
+  <node pkg="map_generator" name="random_forest" type="random_forest" output="screen">
+    <remap from="~odometry" to="$(arg odom_topic)"/>
+    <param name="init_state_x" value="$(arg init_x)"/>
+    <param name="init_state_y" value="$(arg init_y)"/>
+    <param name="map/x_size" value="$(arg map_size_x)"/>
+    <param name="map/y_size" value="$(arg map_size_y)"/>
+    <param name="map/z_size" value="$(arg map_size_z)"/>
+    <param name="map/resolution" value="0.1"/>
+
+    <param name="ObstacleShape/seed" value="$(arg seed)"/>
+    <param name="map/obs_num" value="150"/>
+    <param name="ObstacleShape/lower_rad" value="0.5"/>
+    <param name="ObstacleShape/upper_rad" value="0.7"/>
+    <param name="ObstacleShape/lower_hei" value="0.0"/>
+    <param name="ObstacleShape/upper_hei" value="3.0"/>
+
+    <param name="map/circle_num" value="10"/>
+    <param name="ObstacleShape/radius_l" value="0.7"/>
+    <param name="ObstacleShape/radius_h" value="0.5"/>
+    <param name="ObstacleShape/z_l" value="0.7"/>
+    <param name="ObstacleShape/z_h" value="0.8"/>
+    <param name="ObstacleShape/theta" value="0.5"/>
+
+    <param name="sensing/radius" value="5.0"/>
+    <param name="sensing/rate" value="30.0"/>
+  </node>
+
+  <!-- ===== Dynamic obstacles (DDO only) ===== -->
+  <group if="$(arg use_dynamic_obstacles)">
+    <node pkg="map_generator" type="dynamic_obstacle_generator"
+          name="dynamic_obstacle_generator" output="screen">
+      <param name="map/x_size" value="$(arg map_size_x)"/>
+      <param name="map/y_size" value="$(arg map_size_y)"/>
+      <param name="map/z_size" value="$(arg map_size_z)"/>
+      <param name="dynamic_obstacles/update_rate" value="30.0"/>
+      <param name="dynamic_obstacles/resolution" value="0.15"/>
+      <param name="dynamic_obstacles/num_linear" value="3"/>
+      <param name="dynamic_obstacles/num_circular" value="2"/>
+      <param name="dynamic_obstacles/num_pendulum" value="2"/>
+      <param name="dynamic_obstacles/num_random" value="1"/>
+    </node>
+
+    <node pkg="map_generator" type="cloud_merger" name="cloud_merger" output="screen">
+      <remap from="~static_cloud" to="/map_generator/global_cloud"/>
+      <remap from="~dynamic_cloud" to="/dynamic_obstacles/cloud"/>
+      <remap from="~merged_cloud" to="/merged_global_map"/>
+      <param name="publish_rate" value="30.0"/>
+    </node>
+  </group>
+
+  <!-- ===== Simulator ===== -->
+  <node pkg="so3_quadrotor_simulator" type="quadrotor_simulator_so3"
+        name="quadrotor_simulator_so3" output="screen">
+    <param name="rate/odom" value="200.0"/>
+    <param name="simulator/init_state_x" value="$(arg init_x)"/>
+    <param name="simulator/init_state_y" value="$(arg init_y)"/>
+    <param name="simulator/init_state_z" value="$(arg init_z)"/>
+    <remap from="~odom" to="$(arg odom_topic)"/>
+    <remap from="~cmd" to="so3_cmd"/>
+    <remap from="~force_disturbance" to="force_disturbance"/>
+    <remap from="~moment_disturbance" to="moment_disturbance"/>
+  </node>
+
+  <!-- ===== Controller ===== -->
+  <node pkg="nodelet" type="nodelet" args="standalone so3_control/SO3ControlNodelet"
+        name="so3_control" required="true" output="screen">
+    <remap from="~odom" to="$(arg odom_topic)"/>
+    <remap from="~position_cmd" to="/planning/pos_cmd"/>
+    <remap from="~motors" to="motors"/>
+    <remap from="~corrections" to="corrections"/>
+    <remap from="~so3_cmd" to="so3_cmd"/>
+    <rosparam file="$(find so3_control)/config/gains_hummingbird.yaml"/>
+    <rosparam file="$(find so3_control)/config/corrections_hummingbird.yaml"/>
+    <param name="mass" value="0.74"/>
+    <param name="use_angle_corrections " value="false"/>
+    <param name="use_external_yaw " value="false"/>
+    <param name="gains/rot/z" value="1.0"/>
+    <param name="gains/ang/z" value="0.1"/>
+  </node>
+
+  <!-- ===== Odometry visualization ===== -->
+  <node pkg="odom_visualization" name="odom_visualization" type="odom_visualization" output="screen">
+    <remap from="~odom" to="$(arg odom_topic)"/>
+    <param name="color/a" value="1.0"/>
+    <param name="color/r" value="0.0"/>
+    <param name="color/g" value="0.0"/>
+    <param name="color/b" value="1.0"/>
+    <param name="covariance_scale" value="100.0"/>
+    <param name="robot_scale" value="1.0"/>
+  </node>
+
+  <!-- ===== Depth sensor ===== -->
+  <!-- For DDO: subscribe to merged (static+dynamic) cloud
+       For others: subscribe to static cloud only, but dynamic obstacles appear via depth rendering -->
+  <node pkg="local_sensing_node" type="pcl_render_node" name="pcl_render_node" output="screen">
+    <rosparam command="load" file="$(find local_sensing_node)/params/camera.yaml"/>
+    <param name="sensing_horizon" value="5.0"/>
+    <param name="sensing_rate" value="30.0"/>
+    <param name="estimation_rate" value="30.0"/>
+    <param name="map/x_size" value="$(arg map_size_x)"/>
+    <param name="map/y_size" value="$(arg map_size_y)"/>
+    <param name="map/z_size" value="$(arg map_size_z)"/>
+    <!-- DDO uses merged_global_map, others use map_generator/global_cloud.
+         This is overridden in the method-specific launch files. -->
+    <remap from="~global_map" to="/map_generator/global_cloud"/>
+    <remap from="~odometry" to="$(arg odom_topic)"/>
+    <remap from="~rendered_pcl" to="~cloud"/>
+  </node>
+</launch>

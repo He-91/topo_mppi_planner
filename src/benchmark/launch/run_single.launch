@@ -1,0 +1,91 @@
+<!--
+  Run a single benchmark experiment.
+  
+  Usage:
+    roslaunch ddo_benchmark run_single.launch scenario:=S1_sparse_static method:=ddo run_id:=0
+    
+  Scenarios: S1_sparse_static, S2_dense_static, S3_dynamic, S4_3d_vertical
+  Methods:   ddo, ego, fast
+-->
+<launch>
+  <arg name="scenario" doc="Scenario name: S1_sparse_static | S2_dense_static | S3_dynamic | S4_3d_vertical"/>
+  <arg name="method" doc="Method name: ddo | ego | fast"/>
+  <arg name="run_id" default="0"/>
+  <arg name="seed" default="42"/>
+  <arg name="timeout" default="120.0"/>
+  <arg name="output_dir" default="$(find ddo_benchmark)/results"/>
+
+  <!-- Map parameters (shared across all scenarios) -->
+  <arg name="map_size_x" default="40.0"/>
+  <arg name="map_size_y" default="40.0"/>
+  <arg name="map_size_z" default="5.0"/>
+  <arg name="odom_topic" default="/visual_slam/odom"/>
+
+  <!-- Navigation parameters -->
+  <arg name="init_x" default="-19.0"/>
+  <arg name="init_y" default="0.0"/>
+  <arg name="init_z" default="1.0"/>
+  <arg name="goal_x" default="19.0"/>
+  <arg name="goal_y" default="0.0"/>
+  <arg name="goal_z" default="1.0"/>
+
+  <arg name="max_vel" default="2.0"/>
+  <arg name="max_acc" default="2.5"/>
+
+  <!-- S3 dynamic: enable dynamic obstacles only for DDO -->
+  <arg name="use_dynamic_obstacles" default="false"/>
+
+  <!-- ===== 1. Scenario (simulator + map + sensors) ===== -->
+  <include file="$(find ddo_benchmark)/launch/scenarios/$(arg scenario).launch">
+    <arg name="map_size_x" value="$(arg map_size_x)"/>
+    <arg name="map_size_y" value="$(arg map_size_y)"/>
+    <arg name="map_size_z" value="$(arg map_size_z)"/>
+    <arg name="seed" value="$(arg seed)"/>
+    <arg name="init_x" value="$(arg init_x)"/>
+    <arg name="init_y" value="$(arg init_y)"/>
+    <arg name="init_z" value="$(arg init_z)"/>
+    <arg name="goal_x" value="$(arg goal_x)"/>
+    <arg name="goal_y" value="$(arg goal_y)"/>
+    <arg name="goal_z" value="$(arg goal_z)"/>
+    <arg name="odom_topic" value="$(arg odom_topic)"/>
+    <arg name="use_dynamic_obstacles" value="$(arg use_dynamic_obstacles)" if="$(eval scenario == 'S3_dynamic')"/>
+  </include>
+
+  <!-- ===== 2. Planning method ===== -->
+  <include file="$(find ddo_benchmark)/launch/methods/$(arg method).launch">
+    <arg name="map_size_x" value="$(arg map_size_x)"/>
+    <arg name="map_size_y" value="$(arg map_size_y)"/>
+    <arg name="map_size_z" value="$(arg map_size_z)"/>
+    <arg name="odom_topic" value="$(arg odom_topic)"/>
+    <arg name="goal_x" value="$(arg goal_x)"/>
+    <arg name="goal_y" value="$(arg goal_y)"/>
+    <arg name="goal_z" value="$(arg goal_z)"/>
+    <arg name="max_vel" value="$(arg max_vel)"/>
+    <arg name="max_acc" value="$(arg max_acc)"/>
+  </include>
+
+  <!-- ===== 3. Automated goal publisher ===== -->
+  <node pkg="ddo_benchmark" name="goal_publisher" type="goal_publisher" output="screen">
+    <param name="goal_x" value="$(arg goal_x)"/>
+    <param name="goal_y" value="$(arg goal_y)"/>
+    <param name="goal_z" value="$(arg goal_z)"/>
+    <param name="delay_sec" value="3.0"/>
+    <param name="trigger_delay_sec" value="1.0"/>
+    <param name="method_name" value="$(arg method)"/>
+  </node>
+
+  <!-- ===== 4. Benchmark metrics collector ===== -->
+  <!-- required="true": when benchmark finishes (goal reached / timeout), entire launch shuts down -->
+  <node pkg="ddo_benchmark" name="benchmark_node" type="benchmark_node" output="screen" required="true">
+    <param name="benchmark/method_name" value="$(arg method)"/>
+    <param name="benchmark/scenario_name" value="$(arg scenario)"/>
+    <param name="benchmark/run_id" value="$(arg run_id)"/>
+    <param name="benchmark/timeout" value="$(arg timeout)"/>
+    <param name="benchmark/goal_reach_threshold" value="1.0"/>
+    <param name="benchmark/collision_threshold" value="0.3"/>
+    <param name="benchmark/output_dir" value="$(arg output_dir)"/>
+    <param name="benchmark/goal_x" value="$(arg goal_x)"/>
+    <param name="benchmark/goal_y" value="$(arg goal_y)"/>
+    <param name="benchmark/goal_z" value="$(arg goal_z)"/>
+  </node>
+</launch>

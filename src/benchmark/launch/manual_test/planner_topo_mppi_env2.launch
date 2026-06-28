@@ -1,0 +1,91 @@
+<!--
+  Topo-MPPI 规划器 (仅规划节点，不含仿真环境)
+  用于环境2: EGO 地图 (40x40m, mockamap Perlin)
+  路线: (-15,0,1) -> (0,15,1) -> (15,0,1) -> (0,-15,1) -> (-15,0,1) [EGO原始5点钻石路线]
+-->
+<launch>
+  <include file="$(find ddo_planner)/launch/advanced_param.xml">
+    <arg name="map_size_x_" value="40.0"/>
+    <arg name="map_size_y_" value="40.0"/>
+    <arg name="map_size_z_" value="3.0"/>
+    <arg name="odometry_topic" value="/visual_slam/odom"/>
+    <arg name="camera_pose_topic" value="/pcl_render_node/camera_pose"/>
+    <arg name="depth_topic" value="/pcl_render_node/depth"/>
+    <arg name="cloud_topic" value="/pcl_render_node/cloud"/>
+    <arg name="cx" value="321.04638671875"/>
+    <arg name="cy" value="243.44969177246094"/>
+    <arg name="fx" value="387.229248046875"/>
+    <arg name="fy" value="387.229248046875"/>
+    <arg name="max_vel" value="2.0"/>
+    <arg name="max_acc" value="2.5"/>
+    <arg name="max_z" value="2.2"/>
+    <arg name="recovery_min_z" value="1.0"/>
+    <arg name="planar_flight_z_lock" value="true"/>
+    <arg name="planning_horizon" value="9.0"/>
+    <arg name="planning_timing_log_enabled" value="true"/>
+    <arg name="planning_timing_log_path" value="/tmp/topo_mppi_env2_planning_timing.csv"/>
+    <arg name="candidate_quality_log_enabled" value="true"/>
+    <arg name="candidate_quality_log_path" value="/tmp/topo_mppi_env2_candidate_quality.csv"/>
+    <arg name="final_fallback_feasibility_repair" value="true"/>
+    <arg name="final_fallback_relaxed_derivative_repair" value="true"/>
+    <arg name="final_fallback_relaxed_velocity_scale" value="0.55"/>
+    <arg name="mppi_desired_velocity" value="2.0"/>
+    <arg name="static_scene_safety_gate_enabled" value="true"/>
+    <arg name="static_scene_unsafe_clearance" value="0.15"/>
+    <arg name="static_scene_preferred_clearance" value="0.30"/>
+    <arg name="static_scene_safe_score_slack" value="70.0"/>
+    <arg name="static_scene_best_effort_gate_enabled" value="true"/>
+    <arg name="static_scene_min_clearance_improvement" value="0.06"/>
+    <arg name="static_scene_preferred_clearance_gate_enabled" value="true"/>
+    <arg name="static_scene_preferred_clearance_score_slack" value="160.0"/>
+    <arg name="final_static_check_start_skip" value="0.10"/>
+    <arg name="mode_score_clearance_weight" value="720.0"/>
+    <arg name="mode_score_clearance_margin" value="0.55"/>
+    <arg name="mode_score_min_progress" value="0.25"/>
+    <arg name="mppi_seed_preserve_clearance" value="0.20"/>
+    <arg name="clearance_recovery_enabled" value="false"/>
+    <arg name="geometric_seed_repair_enabled" value="true"/>
+    <arg name="geometric_seed_repair_clearance" value="0.25"/>
+    <arg name="geometric_seed_repair_step" value="0.16"/>
+    <arg name="geometric_seed_repair_iterations" value="4"/>
+    <arg name="static_escape_check_after_failures" value="2"/>
+    <arg name="static_escape_min_post_clearance" value="0.25"/>
+    <arg name="mppi_safety_filter_enabled" value="true"/>
+    <arg name="mppi_safety_filter_min_clearance" value="0.08"/>
+    <arg name="mppi_safety_filter_preferred_clearance" value="0.22"/>
+    <arg name="mppi_safety_filter_cost_slack" value="420.0"/>
+    <arg name="mppi_safety_filter_top_k" value="512"/>
+    <arg name="mppi_gpu_nominal_max_vel" value="3.0"/>
+    <arg name="mppi_gpu_nominal_max_acc" value="3.0"/>
+    <arg name="flight_type" value="2"/>
+    <arg name="point_num" value="5"/>
+    <arg name="point0_x" value="-15.0"/>
+    <arg name="point0_y" value="5.0"/>
+    <arg name="point0_z" value="1.0"/>
+    <arg name="point1_x" value="0.0"/>
+    <arg name="point1_y" value="15.0"/>
+    <arg name="point1_z" value="1.0"/>
+    <arg name="point2_x" value="15.0"/>
+    <arg name="point2_y" value="0.0"/>
+    <arg name="point2_z" value="1.0"/>
+    <arg name="point3_x" value="0.0"/>
+    <arg name="point3_y" value="-15.0"/>
+    <arg name="point3_z" value="1.0"/>
+    <arg name="point4_x" value="-15.0"/>
+    <arg name="point4_y" value="0.0"/>
+    <arg name="point4_z" value="1.0"/>
+  </include>
+
+  <node pkg="ddo_planner" name="traj_server" type="traj_server" output="screen">
+    <remap from="/position_cmd" to="planning/pos_cmd"/>
+    <remap from="/odom_world" to="/visual_slam/odom"/>
+    <param name="traj_server/time_forward" value="1.0" type="double"/>
+  </node>
+
+  <node pkg="waypoint_generator" name="waypoint_generator" type="waypoint_generator" output="screen">
+    <remap from="~odom" to="/visual_slam/odom"/>
+    <remap from="~goal" to="/move_base_simple/goal"/>
+    <remap from="~traj_start_trigger" to="/traj_start_trigger"/>
+    <param name="waypoint_type" value="manual-lonely-waypoint"/>
+  </node>
+</launch>

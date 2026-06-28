@@ -1,0 +1,440 @@
+<launch>
+  <arg name="map_size_x_"/>
+  <arg name="map_size_y_"/>
+  <arg name="map_size_z_"/>
+
+  <arg name="odometry_topic"/>
+  <arg name="camera_pose_topic"/>
+  <arg name="depth_topic"/>
+  <arg name="cloud_topic"/>
+
+  <arg name="cx"/>
+  <arg name="cy"/>
+  <arg name="fx"/>
+  <arg name="fy"/>
+
+  <arg name="max_vel"/>
+  <arg name="max_acc"/>
+  <arg name="planning_horizon"/>
+  <arg name="static_scene_safety_gate_enabled" default="true"/>
+  <arg name="static_scene_unsafe_clearance" default="0.15"/>
+  <arg name="static_scene_preferred_clearance" default="0.30"/>
+  <arg name="static_scene_safe_score_slack" default="40.0"/>
+  <arg name="static_scene_best_effort_gate_enabled" default="true"/>
+  <arg name="static_scene_min_clearance_improvement" default="0.08"/>
+  <arg name="static_scene_preferred_clearance_gate_enabled" default="false"/>
+  <arg name="static_scene_preferred_clearance_score_slack" default="80.0"/>
+  <arg name="dynamic_scene_use_mode_score" default="false"/>
+  <arg name="dynamic_scene_unsafe_clearance" default="0.15"/>
+  <arg name="dynamic_scene_preferred_clearance" default="0.30"/>
+  <arg name="dynamic_scene_safe_cost_slack" default="40.0"/>
+  <arg name="dynamic_score_weight" default="80.0"/>
+  <arg name="dynamic_score_margin" default="0.80"/>
+  <arg name="mode_score_goal_weight" default="90.0"/>
+  <arg name="mode_score_clearance_weight" default="600.0"/>
+  <arg name="mode_score_clearance_margin" default="0.55"/>
+  <arg name="mode_score_min_progress" default="0.25"/>
+  <arg name="mode_score_path_length_weight" default="18.0"/>
+  <arg name="mode_score_overshoot_weight" default="120.0"/>
+  <arg name="mode_score_early_progress_weight" default="160.0"/>
+  <arg name="mode_score_min_early_progress" default="0.05"/>
+  <arg name="mppi_seed_preserve_clearance" default="0.35"/>
+  <arg name="safe_seed_time_stretch_max" default="2.6"/>
+  <arg name="bspline_skip_threshold" default="1"/>
+  <arg name="static_scene_preserve_safe_seed" default="false"/>
+  <arg name="static_scene_preserve_min_clearance" default="0.15"/>
+  <arg name="dynamic_scene_preserve_safe_seed" default="false"/>
+  <arg name="dynamic_escape_start_skip_time" default="0.35"/>
+  <arg name="use_structured_dynamic_surface_check" default="false"/>
+  <arg name="dynamic_distance_radius_compensation" default="0.0"/>
+  <arg name="dynamic_safety_time_buffer" default="0.0"/>
+  <arg name="clearance_recovery_enabled" default="false"/>
+  <arg name="static_escape_check_after_failures" default="2"/>
+  <arg name="static_escape_check_start_skip" default="0.8"/>
+  <arg name="static_escape_max_initial_clearance" default="0.05"/>
+  <arg name="static_escape_min_post_clearance" default="0.35"/>
+  <arg name="final_static_min_clearance" default="0.15"/>
+  <arg name="final_dynamic_static_check_fraction" default="0.35"/>
+  <arg name="final_dynamic_static_check_time" default="1.2"/>
+  <arg name="final_static_check_start_skip" default="0.25"/>
+  <arg name="final_fallback_feasibility_repair" default="false"/>
+  <arg name="final_fallback_relaxed_derivative_repair" default="false"/>
+  <arg name="final_fallback_relaxed_velocity_scale" default="0.6"/>
+  <arg name="final_publish_feasibility_gate_enabled" default="false"/>
+  <arg name="geometric_seed_repair_enabled" default="false"/>
+  <arg name="geometric_seed_repair_clearance" default="0.25"/>
+  <arg name="geometric_seed_repair_step" default="0.18"/>
+  <arg name="geometric_seed_repair_iterations" default="3"/>
+  <arg name="final_dynamic_min_distance" default="0.65"/>
+  <arg name="dynamic_publish_preferred_distance" default="0.65"/>
+  <arg name="max_mppi_topo_candidates" default="4"/>
+  <arg name="topo_prefilter_clearance_weight" default="220.0"/>
+  <arg name="topo_prefilter_dynamic_weight" default="80.0"/>
+  <arg name="topo_prefilter_clearance_margin" default="0.30"/>
+  <arg name="topo_safety_start_skip_dist" default="0.0"/>
+  <arg name="cached_topo_rebase_max_dist" default="4.5"/>
+  <arg name="cached_topo_goal_reuse_max_dist" default="1.0"/>
+  <arg name="cache_only_published_topo_paths" default="true"/>
+  <arg name="prefer_cached_topo_paths" default="false"/>
+  <arg name="planning_timing_log_enabled" default="false"/>
+  <arg name="planning_timing_log_path" default="/tmp/topo_mppi_planning_timing.csv"/>
+  <arg name="candidate_quality_log_enabled" default="false"/>
+  <arg name="candidate_quality_log_path" default="/tmp/topo_mppi_candidate_quality.csv"/>
+  <arg name="topo_fallback_vertical_on_empty" default="false"/>
+  <arg name="topo_fallback_vertical_when_partial" default="false"/>
+  <arg name="topo_fallback_center_vertical_when_partial" default="false"/>
+  <arg name="topo_grid_seed_enabled" default="false"/>
+  <arg name="topo_grid_seed_resolution" default="0.4"/>
+  <arg name="topo_grid_seed_max_paths" default="4"/>
+  <arg name="topo_grid_seed_lateral_scale" default="1.0"/>
+  <arg name="topo_grid_seed_clearance" default="0.16"/>
+  <arg name="topo_grid_seed_clearance_cost_weight" default="0.35"/>
+  <arg name="topo_grid_seed_reuse_penalty" default="8.0"/>
+  <arg name="topo_clearance_aware_selection" default="false"/>
+  <arg name="topo_selection_smooth_weight" default="2.0"/>
+  <arg name="topo_selection_obstacle_weight" default="5.0"/>
+  <arg name="mppi_desired_velocity" default="2.0"/>
+  <arg name="mppi_w_dynamic" default="30.0"/>
+  <arg name="mppi_dynamic_safe_distance" default="0.80"/>
+  <arg name="mppi_dynamic_collision_distance" default="0.0"/>
+  <arg name="mppi_near_collision_distance" default="0.15"/>
+  <arg name="mppi_near_collision_weight" default="0.0"/>
+  <arg name="mppi_dynamic_temporal_modes_enabled" default="false"/>
+  <arg name="mppi_dynamic_temporal_mode_count" default="4"/>
+  <arg name="mppi_dynamic_temporal_cautious_scale" default="0.55"/>
+  <arg name="mppi_dynamic_temporal_fast_scale" default="1.15"/>
+  <arg name="mppi_dynamic_temporal_yield_steps" default="8"/>
+  <arg name="mppi_height_weight" default="80.0"/>
+  <arg name="mppi_safety_filter_enabled" default="false"/>
+  <arg name="mppi_safety_filter_min_clearance" default="0.15"/>
+  <arg name="mppi_safety_filter_preferred_clearance" default="0.30"/>
+  <arg name="mppi_safety_filter_cost_slack" default="260.0"/>
+  <arg name="mppi_safety_filter_top_k" default="384"/>
+  <arg name="bspline_lambda_collision" default="1.0"/>
+  <arg name="bspline_dist0" default="0.5"/>
+  <arg name="mppi_gpu_nominal_max_vel" default="-1.0"/>
+  <arg name="mppi_gpu_nominal_max_acc" default="-1.0"/>
+  <arg name="mppi_gpu_random_seed" default="0"/>
+  <arg name="use_multi_topo_mppi_optimization" default="true"/>
+  <arg name="ablation_disable_topo_guidance" default="false"/>
+  <arg name="ablation_disable_mppi_optimization" default="false"/>
+  <arg name="stuck_check_interval" default="15.0"/>
+  <arg name="stuck_disp_threshold" default="1.0"/>
+  <arg name="retreat_distance" default="3.0"/>
+  <arg name="max_consecutive_retreats" default="3"/>
+  <arg name="goal_reached_thresh" default="0.9"/>
+  <arg name="dynamic_exec_safety_enabled" default="false"/>
+  <arg name="dynamic_exec_safety_distance" default="0.30"/>
+  <arg name="dynamic_exec_safety_horizon" default="1.0"/>
+  <arg name="dynamic_exec_safety_step" default="0.05"/>
+  <arg name="dynamic_exec_emergency_time" default="0.45"/>
+
+  <!-- Z轴独立约束 (默认等于xy，保持向后兼容) -->
+  <arg name="max_vel_z" default="$(arg max_vel)"/>
+  <arg name="max_acc_z" default="$(arg max_acc)"/>
+  <arg name="min_z" default="0.3"/>
+  <arg name="max_z" default="4.5"/>
+  <arg name="publish_z_margin" default="0.35"/>
+  <arg name="recovery_min_z" default="1.0"/>
+  <arg name="planar_flight_z_lock" default="false"/>
+
+  <arg name="point_num"/>
+  <arg name="point0_x"/>
+  <arg name="point0_y"/>
+  <arg name="point0_z"/>
+  <arg name="point1_x"/>
+  <arg name="point1_y"/>
+  <arg name="point1_z"/>
+  <arg name="point2_x"/>
+  <arg name="point2_y"/>
+  <arg name="point2_z"/>
+  <arg name="point3_x"/>
+  <arg name="point3_y"/>
+  <arg name="point3_z"/>
+  <arg name="point4_x"/>
+  <arg name="point4_y"/>
+  <arg name="point4_z"/>
+
+  <arg name="flight_type"/>
+
+  <!-- main node -->
+  <node pkg="ddo_planner" name="ddo_planner_node" type="ddo_planner_node" output="screen">
+    <remap from="/odom_world" to="$(arg odometry_topic)"/>
+    <remap from="/grid_map/odom" to="$(arg odometry_topic)"/>
+    <remap from="/grid_map/cloud" to="$(arg cloud_topic)"/>
+    <remap from = "/grid_map/pose"   to = "$(arg camera_pose_topic)"/> 
+    <remap from = "/grid_map/depth" to = "$(arg depth_topic)"/>
+
+    <!-- planning fsm -->
+    <param name="fsm/flight_type" value="$(arg flight_type)" type="int"/>
+    <param name="fsm/thresh_replan" value="1.5" type="double"/>
+    <param name="fsm/thresh_no_replan" value="2.0" type="double"/>
+    <param name="fsm/planning_horizon" value="$(arg planning_horizon)" type="double"/> <!--always set to 1.5 times grater than sensing horizen-->
+    <param name="fsm/planning_horizen_time" value="3" type="double"/>
+    <param name="fsm/emergency_time_" value="1.0" type="double"/>
+    <param name="fsm/stuck_check_interval" value="$(arg stuck_check_interval)" type="double"/>
+    <param name="fsm/stuck_disp_threshold" value="$(arg stuck_disp_threshold)" type="double"/>
+    <param name="fsm/retreat_distance" value="$(arg retreat_distance)" type="double"/>
+    <param name="fsm/max_consecutive_retreats" value="$(arg max_consecutive_retreats)" type="int"/>
+    <param name="fsm/goal_reached_thresh" value="$(arg goal_reached_thresh)" type="double"/>
+    <param name="fsm/dynamic_exec_safety_enabled" value="$(arg dynamic_exec_safety_enabled)" type="bool"/>
+    <param name="fsm/dynamic_exec_safety_distance" value="$(arg dynamic_exec_safety_distance)" type="double"/>
+    <param name="fsm/dynamic_exec_safety_horizon" value="$(arg dynamic_exec_safety_horizon)" type="double"/>
+    <param name="fsm/dynamic_exec_safety_step" value="$(arg dynamic_exec_safety_step)" type="double"/>
+    <param name="fsm/dynamic_exec_emergency_time" value="$(arg dynamic_exec_emergency_time)" type="double"/>
+
+    <!-- Z轴安全边界 -->
+    <param name="fsm/min_z" value="$(arg min_z)" type="double"/>
+    <param name="fsm/max_z" value="$(arg max_z)" type="double"/>
+    <param name="fsm/publish_z_margin" value="$(arg publish_z_margin)" type="double"/>
+    <param name="fsm/recovery_min_z" value="$(arg recovery_min_z)" type="double"/>
+    <param name="fsm/max_vz" value="$(arg max_vel_z)" type="double"/>
+
+    <param name="fsm/waypoint_num" value="$(arg point_num)" type="int"/>
+    <param name="fsm/waypoint0_x" value="$(arg point0_x)" type="double"/>
+    <param name="fsm/waypoint0_y" value="$(arg point0_y)" type="double"/>
+    <param name="fsm/waypoint0_z" value="$(arg point0_z)" type="double"/>
+    <param name="fsm/waypoint1_x" value="$(arg point1_x)" type="double"/>
+    <param name="fsm/waypoint1_y" value="$(arg point1_y)" type="double"/>
+    <param name="fsm/waypoint1_z" value="$(arg point1_z)" type="double"/>
+    <param name="fsm/waypoint2_x" value="$(arg point2_x)" type="double"/>
+    <param name="fsm/waypoint2_y" value="$(arg point2_y)" type="double"/>
+    <param name="fsm/waypoint2_z" value="$(arg point2_z)" type="double"/>
+    <param name="fsm/waypoint3_x" value="$(arg point3_x)" type="double"/>
+    <param name="fsm/waypoint3_y" value="$(arg point3_y)" type="double"/>
+    <param name="fsm/waypoint3_z" value="$(arg point3_z)" type="double"/>
+    <param name="fsm/waypoint4_x" value="$(arg point4_x)" type="double"/>
+    <param name="fsm/waypoint4_y" value="$(arg point4_y)" type="double"/>
+    <param name="fsm/waypoint4_z" value="$(arg point4_z)" type="double"/>
+
+    <param name="grid_map/resolution"      value="0.1" /> 
+    <param name="grid_map/map_size_x"   value="$(arg map_size_x_)" /> 
+    <param name="grid_map/map_size_y"   value="$(arg map_size_y_)" /> 
+    <param name="grid_map/map_size_z"   value="$(arg map_size_z_)" /> 
+    <param name="grid_map/local_update_range_x"  value="5.5" /> 
+    <param name="grid_map/local_update_range_y"  value="5.5" /> 
+    <param name="grid_map/local_update_range_z"  value="4.5" /> 
+    <param name="grid_map/obstacles_inflation"     value="0.099" /> 
+    <param name="grid_map/local_map_margin" value="30"/>
+    <param name="grid_map/ground_height"        value="-0.01"/>
+    <!-- camera parameter -->
+    <param name="grid_map/cx" value="$(arg cx)"/>
+    <param name="grid_map/cy" value="$(arg cy)"/>
+    <param name="grid_map/fx" value="$(arg fx)"/>
+    <param name="grid_map/fy" value="$(arg fy)"/>
+    <!-- depth filter -->
+    <param name="grid_map/use_depth_filter" value="true"/>
+    <param name="grid_map/depth_filter_tolerance" value="0.15"/>
+    <param name="grid_map/depth_filter_maxdist"   value="5.0"/>
+    <param name="grid_map/depth_filter_mindist"   value="0.2"/>
+    <param name="grid_map/depth_filter_margin"    value="1"/>
+    <param name="grid_map/k_depth_scaling_factor" value="1000.0"/>
+    <param name="grid_map/skip_pixel" value="2"/>
+    <!-- local fusion -->
+    <param name="grid_map/p_hit"  value="0.65"/>
+    <param name="grid_map/p_miss" value="0.35"/>
+    <param name="grid_map/p_min"  value="0.12"/>
+    <param name="grid_map/p_max"  value="0.90"/>
+    <param name="grid_map/p_occ"  value="0.80"/>
+    <param name="grid_map/min_ray_length" value="0.1"/>
+    <param name="grid_map/max_ray_length" value="4.5"/>
+
+    <param name="grid_map/virtual_ceil_height"   value="2.5"/>
+    <param name="grid_map/visualization_truncate_height"   value="2.4"/>
+    <param name="grid_map/show_occ_time"  value="true"/>
+    <param name="grid_map/pose_type"     value="2"/>  
+    <param name="grid_map/frame_id"      value="world"/>
+
+  <!-- planner manager -->
+    <param name="manager/max_vel" value="$(arg max_vel)" type="double"/>
+    <param name="manager/max_acc" value="$(arg max_acc)" type="double"/>
+    <param name="manager/max_vel_z" value="$(arg max_vel_z)" type="double"/>
+    <param name="manager/max_acc_z" value="$(arg max_acc_z)" type="double"/>
+    <param name="manager/planar_flight_z_lock" value="$(arg planar_flight_z_lock)" type="bool"/>
+    <param name="manager/max_jerk" value="4" type="double"/>
+    <param name="manager/control_points_distance" value="0.4" type="double"/>
+    <param name="manager/feasibility_tolerance" value="0.05" type="double"/>
+    <param name="manager/planning_horizon" value="$(arg planning_horizon)" type="double"/>
+    
+    <!-- NEW: Multi-path MPPI optimization -->
+    <!-- If true, optimize ALL topological paths with MPPI and select the best result -->
+    <!-- If false (default), only optimize the single best topological path -->
+    <param name="manager/use_multi_topo_mppi_optimization" value="$(arg use_multi_topo_mppi_optimization)" type="bool"/>
+    <param name="manager/ablation_disable_topo_guidance" value="$(arg ablation_disable_topo_guidance)" type="bool"/>
+    <param name="manager/ablation_disable_mppi_optimization" value="$(arg ablation_disable_mppi_optimization)" type="bool"/>
+
+    <!-- Topology-mode candidate score (used only when no dynamic obstacles are active) -->
+    <param name="manager/mode_score/goal_weight" value="$(arg mode_score_goal_weight)" type="double"/>
+    <param name="manager/mode_score/clearance_weight" value="$(arg mode_score_clearance_weight)" type="double"/>
+    <param name="manager/mode_score/clearance_margin" value="$(arg mode_score_clearance_margin)" type="double"/>
+    <param name="manager/mode_score/dynamic_weight" value="$(arg dynamic_score_weight)" type="double"/>
+    <param name="manager/mode_score/dynamic_margin" value="$(arg dynamic_score_margin)" type="double"/>
+    <param name="manager/mode_score/dynamic_scene_unsafe_clearance" value="$(arg dynamic_scene_unsafe_clearance)" type="double"/>
+    <param name="manager/mode_score/dynamic_scene_preferred_clearance" value="$(arg dynamic_scene_preferred_clearance)" type="double"/>
+    <param name="manager/mode_score/dynamic_scene_safe_cost_slack" value="$(arg dynamic_scene_safe_cost_slack)" type="double"/>
+    <param name="manager/mode_score/dynamic_scene_use_mode_score" value="$(arg dynamic_scene_use_mode_score)" type="bool"/>
+    <param name="manager/mode_score/static_scene_safety_gate_enabled" value="$(arg static_scene_safety_gate_enabled)" type="bool"/>
+    <param name="manager/mode_score/static_scene_unsafe_clearance" value="$(arg static_scene_unsafe_clearance)" type="double"/>
+    <param name="manager/mode_score/static_scene_preferred_clearance" value="$(arg static_scene_preferred_clearance)" type="double"/>
+    <param name="manager/mode_score/static_scene_safe_score_slack" value="$(arg static_scene_safe_score_slack)" type="double"/>
+    <param name="manager/mode_score/static_scene_best_effort_gate_enabled" value="$(arg static_scene_best_effort_gate_enabled)" type="bool"/>
+    <param name="manager/mode_score/static_scene_min_clearance_improvement" value="$(arg static_scene_min_clearance_improvement)" type="double"/>
+    <param name="manager/mode_score/static_scene_preferred_clearance_gate_enabled" value="$(arg static_scene_preferred_clearance_gate_enabled)" type="bool"/>
+    <param name="manager/mode_score/static_scene_preferred_clearance_score_slack" value="$(arg static_scene_preferred_clearance_score_slack)" type="double"/>
+    <param name="manager/mode_score/reverse_progress_weight" value="350.0" type="double"/>
+    <param name="manager/mode_score/weak_progress_weight" value="80.0" type="double"/>
+    <param name="manager/mode_score/min_progress" value="$(arg mode_score_min_progress)" type="double"/>
+    <param name="manager/mode_score/direction_weight" value="140.0" type="double"/>
+    <param name="manager/mode_score/min_direction_cos" value="0.15" type="double"/>
+    <param name="manager/mode_score/path_length_weight" value="$(arg mode_score_path_length_weight)" type="double"/>
+    <param name="manager/mode_score/overshoot_weight" value="$(arg mode_score_overshoot_weight)" type="double"/>
+    <param name="manager/mode_score/early_progress_weight" value="$(arg mode_score_early_progress_weight)" type="double"/>
+    <param name="manager/mode_score/min_early_progress" value="$(arg mode_score_min_early_progress)" type="double"/>
+    <param name="manager/mode_score/safety_skip_points" value="2" type="int"/>
+    <param name="manager/mppi_seed_preserve_clearance" value="$(arg mppi_seed_preserve_clearance)" type="double"/>
+    <param name="manager/safe_seed_time_stretch_max" value="$(arg safe_seed_time_stretch_max)" type="double"/>
+    <param name="manager/bspline_skip_threshold" value="$(arg bspline_skip_threshold)" type="int"/>
+    <param name="manager/static_scene_preserve_safe_seed" value="$(arg static_scene_preserve_safe_seed)" type="bool"/>
+    <param name="manager/static_scene_preserve_min_clearance" value="$(arg static_scene_preserve_min_clearance)" type="double"/>
+    <param name="manager/dynamic_scene_preserve_safe_seed" value="$(arg dynamic_scene_preserve_safe_seed)" type="bool"/>
+    <param name="manager/dynamic_escape_start_skip_time" value="$(arg dynamic_escape_start_skip_time)" type="double"/>
+    <param name="manager/use_structured_dynamic_surface_check" value="$(arg use_structured_dynamic_surface_check)" type="bool"/>
+    <param name="manager/dynamic_distance_radius_compensation" value="$(arg dynamic_distance_radius_compensation)" type="double"/>
+    <param name="manager/dynamic_safety_time_buffer" value="$(arg dynamic_safety_time_buffer)" type="double"/>
+    <param name="manager/clearance_recovery_enabled" value="$(arg clearance_recovery_enabled)" type="bool"/>
+    <param name="manager/static_escape_check_after_failures" value="$(arg static_escape_check_after_failures)" type="int"/>
+    <param name="manager/static_escape_check_start_skip" value="$(arg static_escape_check_start_skip)" type="double"/>
+    <param name="manager/static_escape_max_initial_clearance" value="$(arg static_escape_max_initial_clearance)" type="double"/>
+    <param name="manager/static_escape_min_post_clearance" value="$(arg static_escape_min_post_clearance)" type="double"/>
+    <param name="manager/final_static_min_clearance" value="$(arg final_static_min_clearance)" type="double"/>
+    <param name="manager/final_dynamic_static_check_fraction" value="$(arg final_dynamic_static_check_fraction)" type="double"/>
+    <param name="manager/final_dynamic_static_check_time" value="$(arg final_dynamic_static_check_time)" type="double"/>
+    <param name="manager/final_static_check_start_skip" value="$(arg final_static_check_start_skip)" type="double"/>
+    <param name="manager/final_fallback_feasibility_repair" value="$(arg final_fallback_feasibility_repair)" type="bool"/>
+    <param name="manager/final_fallback_relaxed_derivative_repair" value="$(arg final_fallback_relaxed_derivative_repair)" type="bool"/>
+    <param name="manager/final_fallback_relaxed_velocity_scale" value="$(arg final_fallback_relaxed_velocity_scale)" type="double"/>
+    <param name="manager/final_publish_feasibility_gate_enabled" value="$(arg final_publish_feasibility_gate_enabled)" type="bool"/>
+    <param name="manager/geometric_seed_repair_enabled" value="$(arg geometric_seed_repair_enabled)" type="bool"/>
+    <param name="manager/geometric_seed_repair_clearance" value="$(arg geometric_seed_repair_clearance)" type="double"/>
+    <param name="manager/geometric_seed_repair_step" value="$(arg geometric_seed_repair_step)" type="double"/>
+    <param name="manager/geometric_seed_repair_iterations" value="$(arg geometric_seed_repair_iterations)" type="int"/>
+    <param name="manager/final_dynamic_min_distance" value="$(arg final_dynamic_min_distance)" type="double"/>
+    <param name="manager/dynamic_publish_preferred_distance" value="$(arg dynamic_publish_preferred_distance)" type="double"/>
+    <param name="manager/max_mppi_topo_candidates" value="$(arg max_mppi_topo_candidates)" type="int"/>
+    <param name="manager/topo_prefilter/clearance_weight" value="$(arg topo_prefilter_clearance_weight)" type="double"/>
+    <param name="manager/topo_prefilter/dynamic_weight" value="$(arg topo_prefilter_dynamic_weight)" type="double"/>
+    <param name="manager/topo_prefilter/clearance_margin" value="$(arg topo_prefilter_clearance_margin)" type="double"/>
+    <param name="manager/topo_prefilter/start_skip_dist" value="$(arg topo_safety_start_skip_dist)" type="double"/>
+    <param name="manager/cached_topo_rebase_max_dist" value="$(arg cached_topo_rebase_max_dist)" type="double"/>
+    <param name="manager/cached_topo_goal_reuse_max_dist" value="$(arg cached_topo_goal_reuse_max_dist)" type="double"/>
+    <param name="manager/cache_only_published_topo_paths" value="$(arg cache_only_published_topo_paths)" type="bool"/>
+    <param name="manager/prefer_cached_topo_paths" value="$(arg prefer_cached_topo_paths)" type="bool"/>
+    <param name="manager/planning_timing_log_enabled" value="$(arg planning_timing_log_enabled)" type="bool"/>
+    <param name="manager/planning_timing_log_path" value="$(arg planning_timing_log_path)" type="string"/>
+    <param name="manager/candidate_quality_log_enabled" value="$(arg candidate_quality_log_enabled)" type="bool"/>
+    <param name="manager/candidate_quality_log_path" value="$(arg candidate_quality_log_path)" type="string"/>
+    
+  <!-- topological planning (TGK) -->
+    <param name="topo_prm/use_tgk_algorithm" value="true" type="bool"/>
+    <!-- Maximum topological paths to generate and optimize -->
+    <!-- Recommended: 3-5 for CPU, 5-10 for future GPU optimization -->
+    <!-- Trade-off: More paths = better global optimality but longer computation -->
+    <param name="topo_prm/max_topo_paths" value="5" type="int"/>
+    <param name="topo_prm/max_sample_time" value="0.006" type="double"/>
+    <param name="topo_prm/clearance" value="0.28" type="double"/>
+    <param name="topo_prm/sample_inflate_y" value="5.5" type="double"/>
+    <param name="topo_prm/adaptive_retry_num" value="2" type="int"/>
+    <param name="topo_prm/retry_sample_time_scale" value="2.0" type="double"/>
+    <param name="topo_prm/retry_lateral_scale" value="1.35" type="double"/>
+    <param name="topo_prm/retry_clearance_decay" value="0.80" type="double"/>
+    <param name="topo_prm/enable_deterministic_fallback" value="true" type="bool"/>
+    <param name="topo_prm/fallback_vertical_on_empty" value="$(arg topo_fallback_vertical_on_empty)" type="bool"/>
+    <param name="topo_prm/fallback_vertical_when_partial" value="$(arg topo_fallback_vertical_when_partial)" type="bool"/>
+    <param name="topo_prm/fallback_center_vertical_when_partial" value="$(arg topo_fallback_center_vertical_when_partial)" type="bool"/>
+    <param name="topo_prm/fallback_lateral_candidates" value="3" type="int"/>
+    <param name="topo_prm/fallback_vertical_candidates" value="3" type="int"/>
+    <param name="topo_prm/fallback_vertical_step" value="0.55" type="double"/>
+    <param name="topo_prm/fallback_max_vertical_offset" value="1.65" type="double"/>
+    <param name="topo_prm/grid_seed_enabled" value="$(arg topo_grid_seed_enabled)" type="bool"/>
+    <param name="topo_prm/grid_seed_resolution" value="$(arg topo_grid_seed_resolution)" type="double"/>
+    <param name="topo_prm/grid_seed_max_paths" value="$(arg topo_grid_seed_max_paths)" type="int"/>
+    <param name="topo_prm/grid_seed_lateral_scale" value="$(arg topo_grid_seed_lateral_scale)" type="double"/>
+    <param name="topo_prm/grid_seed_clearance" value="$(arg topo_grid_seed_clearance)" type="double"/>
+    <param name="topo_prm/grid_seed_clearance_cost_weight" value="$(arg topo_grid_seed_clearance_cost_weight)" type="double"/>
+    <param name="topo_prm/grid_seed_reuse_penalty" value="$(arg topo_grid_seed_reuse_penalty)" type="double"/>
+    <param name="topo_prm/clearance_aware_selection" value="$(arg topo_clearance_aware_selection)" type="bool"/>
+    <param name="topo_prm/selection_smooth_weight" value="$(arg topo_selection_smooth_weight)" type="double"/>
+    <param name="topo_prm/selection_obstacle_weight" value="$(arg topo_selection_obstacle_weight)" type="double"/>
+
+  <!-- trajectory optimization -->
+    <param name="optimization/lambda_smooth" value="1.0" type="double"/>
+    <!-- Using original Fast-Planner value 0.5 (tested and stable) -->
+    <param name="optimization/lambda_collision" value="$(arg bspline_lambda_collision)" type="double"/>
+    <param name="optimization/lambda_feasibility" value="0.1" type="double"/>
+    <param name="optimization/lambda_fitness" value="1.5" type="double"/>
+    <param name="optimization/dist0" value="$(arg bspline_dist0)" type="double"/>
+    <param name="optimization/max_vel" value="$(arg max_vel)" type="double"/>
+    <param name="optimization/max_acc" value="$(arg max_acc)" type="double"/>
+    <param name="optimization/max_vel_z" value="$(arg max_vel_z)" type="double"/>
+    <param name="optimization/max_acc_z" value="$(arg max_acc_z)" type="double"/>
+
+    <param name="bspline/limit_vel" value="$(arg max_vel)" type="double"/>
+    <param name="bspline/limit_acc" value="$(arg max_acc)" type="double"/>
+    <param name="bspline/limit_ratio" value="1.1" type="double"/>
+
+    <!-- MPPI Parameters -->
+    <!-- GPU acceleration (requires CUDA and USE_GPU_MPPI compile flag) -->
+    <param name="mppi/use_gpu" value="true" type="bool"/>
+    
+    <!-- Prediction horizon configuration -->
+    <param name="mppi/horizon_steps" value="30" type="int"/>  <!-- 改进: 20→30步,预测时间3.0秒 (Phase1修复) -->
+    <param name="mppi/dt" value="0.1" type="double"/>         <!-- 时间步长0.1秒，总预测时间=horizon_steps*dt=3.0秒 -->
+    
+    <!-- Iterative MPPI optimization (Phase 2 feature) -->
+    <param name="mppi/use_iterative_mppi" value="true" type="bool"/>   <!-- 启用迭代MPPI优化 -->
+    <param name="mppi/num_iterations" value="1" type="int"/>           <!-- 优化: 3→1次迭代,减少MPPI计算开销 -->
+    
+    <!-- Sampling configuration -->
+    <param name="mppi/num_samples" value="4000" type="int"/>           <!-- P0优化: 2000→4000 (利用强显卡) -->
+    <param name="mppi/num_samples_min" value="2000" type="int"/>       <!-- 自适应采样最小值 -->
+    <param name="mppi/num_samples_max" value="8000" type="int"/>       <!-- P0优化: 5000→8000 (峰值性能) -->
+    <param name="mppi/use_adaptive_sampling" value="true" type="bool"/> <!-- 启用自适应采样 -->
+    
+    <!-- Temperature parameter for importance sampling -->
+    <param name="mppi/lambda" value="0.5" type="double"/>             <!-- 改进: 1.0→0.5初始温度,避免过度探索 (Phase1修复) -->
+
+    <!-- Cost and sampling parameters (read by both CPU MPPI and GPU MPPI) -->
+    <param name="mppi/w_obstacle" value="100.0" type="double"/>
+    <param name="mppi/w_dynamic" value="$(arg mppi_w_dynamic)" type="double"/>
+    <param name="mppi/w_smoothness" value="5.0" type="double"/>
+    <param name="mppi/w_goal" value="15.0" type="double"/>
+    <param name="mppi/w_velocity" value="10.0" type="double"/>
+    <param name="mppi/w_path_guidance" value="30.0" type="double"/>
+    <param name="mppi/safe_distance" value="0.55" type="double"/>
+    <param name="mppi/near_collision_distance" value="$(arg mppi_near_collision_distance)" type="double"/>
+    <!-- Keep batch safety filter available but disabled by default; global enabling regressed Env2 convergence. -->
+    <param name="mppi/near_collision_weight" value="$(arg mppi_near_collision_weight)" type="double"/>
+    <param name="mppi/dynamic_safe_distance" value="$(arg mppi_dynamic_safe_distance)" type="double"/>
+    <param name="mppi/dynamic_collision_distance" value="$(arg mppi_dynamic_collision_distance)" type="double"/>
+    <param name="mppi/dynamic_temporal_modes_enabled" value="$(arg mppi_dynamic_temporal_modes_enabled)" type="bool"/>
+    <param name="mppi/dynamic_temporal_mode_count" value="$(arg mppi_dynamic_temporal_mode_count)" type="int"/>
+    <param name="mppi/dynamic_temporal_cautious_scale" value="$(arg mppi_dynamic_temporal_cautious_scale)" type="double"/>
+    <param name="mppi/dynamic_temporal_fast_scale" value="$(arg mppi_dynamic_temporal_fast_scale)" type="double"/>
+    <param name="mppi/dynamic_temporal_yield_steps" value="$(arg mppi_dynamic_temporal_yield_steps)" type="int"/>
+    <param name="mppi/w_height" value="$(arg mppi_height_weight)" type="double"/>
+    <param name="mppi/desired_velocity" value="$(arg mppi_desired_velocity)" type="double"/>
+    <param name="mppi/gpu_nominal_max_vel" value="$(arg mppi_gpu_nominal_max_vel)" type="double"/>
+    <param name="mppi/gpu_nominal_max_acc" value="$(arg mppi_gpu_nominal_max_acc)" type="double"/>
+    <param name="mppi/gpu_random_seed" value="$(arg mppi_gpu_random_seed)" type="int"/>
+    <param name="mppi/sigma_acc" value="1.0" type="double"/>
+    <param name="mppi/use_colored_noise" value="true" type="bool"/>
+    <param name="mppi/temporal_correlation" value="0.7" type="double"/>
+    <param name="mppi/safety_filter_enabled" value="$(arg mppi_safety_filter_enabled)" type="bool"/>
+    <param name="mppi/safety_filter_min_clearance" value="$(arg mppi_safety_filter_min_clearance)" type="double"/>
+    <param name="mppi/safety_filter_preferred_clearance" value="$(arg mppi_safety_filter_preferred_clearance)" type="double"/>
+    <param name="mppi/safety_filter_cost_slack" value="$(arg mppi_safety_filter_cost_slack)" type="double"/>
+    <param name="mppi/safety_filter_top_k" value="$(arg mppi_safety_filter_top_k)" type="int"/>
+
+  </node>
+
+</launch>
