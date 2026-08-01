@@ -38,12 +38,17 @@ TopoPRM::TopoPRM()
       fallback_vertical_step_(0.55),
       fallback_max_vertical_offset_(1.65),
       grid_seed_enabled_(false),
+      grid_fallback_on_empty_(false),
+      grid_seed_allow_near_obstacle_(false),
       grid_seed_resolution_(0.4),
       grid_seed_max_paths_(4),
       grid_seed_lateral_scale_(1.0),
       grid_seed_clearance_(0.16),
       grid_seed_clearance_cost_weight_(0.35),
       grid_seed_reuse_penalty_(8.0),
+      grid_seed_shortcut_clearance_(0.0),
+      shortcut_min_clearance_(0.0),
+      strict_guard_visibility_(false),
       clearance_aware_selection_(false),
       selection_smooth_weight_(2.0),
       selection_obstacle_weight_(5.0),
@@ -80,6 +85,7 @@ void TopoPRM::init(ros::NodeHandle& nh, GridMap::Ptr grid_map) {
     
     //  Read topology parameters
     nh.param("topo_prm/max_topo_paths", reserve_num_, reserve_num_);
+    nh.param("topo_prm/max_raw_paths", max_raw_paths_, max_raw_paths_);
     nh.param("topo_prm/short_cut_num", short_cut_num_, 5);
     nh.param("topo_prm/parallel_shortcut", parallel_shortcut_, false);
     nh.param("topo_prm/max_sample_time", max_sample_time_, max_sample_time_);
@@ -100,6 +106,11 @@ void TopoPRM::init(ros::NodeHandle& nh, GridMap::Ptr grid_map) {
     nh.param("topo_prm/fallback_vertical_step", fallback_vertical_step_, fallback_vertical_step_);
     nh.param("topo_prm/fallback_max_vertical_offset", fallback_max_vertical_offset_, fallback_max_vertical_offset_);
     nh.param("topo_prm/grid_seed_enabled", grid_seed_enabled_, grid_seed_enabled_);
+    nh.param("topo_prm/grid_fallback_on_empty",
+             grid_fallback_on_empty_, grid_fallback_on_empty_);
+    nh.param("topo_prm/grid_seed_allow_near_obstacle",
+             grid_seed_allow_near_obstacle_,
+             grid_seed_allow_near_obstacle_);
     nh.param("topo_prm/grid_seed_resolution", grid_seed_resolution_, grid_seed_resolution_);
     nh.param("topo_prm/grid_seed_max_paths", grid_seed_max_paths_, grid_seed_max_paths_);
     nh.param("topo_prm/grid_seed_lateral_scale", grid_seed_lateral_scale_, grid_seed_lateral_scale_);
@@ -108,6 +119,14 @@ void TopoPRM::init(ros::NodeHandle& nh, GridMap::Ptr grid_map) {
              grid_seed_clearance_cost_weight_,
              grid_seed_clearance_cost_weight_);
     nh.param("topo_prm/grid_seed_reuse_penalty", grid_seed_reuse_penalty_, grid_seed_reuse_penalty_);
+    nh.param("topo_prm/grid_seed_shortcut_clearance",
+             grid_seed_shortcut_clearance_,
+             grid_seed_shortcut_clearance_);
+    nh.param("topo_prm/shortcut_min_clearance",
+             shortcut_min_clearance_,
+             shortcut_min_clearance_);
+    nh.param("topo_prm/strict_guard_visibility",
+             strict_guard_visibility_, strict_guard_visibility_);
     nh.param("topo_prm/clearance_aware_selection", clearance_aware_selection_, clearance_aware_selection_);
     nh.param("topo_prm/selection_smooth_weight", selection_smooth_weight_, selection_smooth_weight_);
     nh.param("topo_prm/selection_obstacle_weight", selection_obstacle_weight_, selection_obstacle_weight_);
@@ -119,6 +138,7 @@ void TopoPRM::init(ros::NodeHandle& nh, GridMap::Ptr grid_map) {
         ROS_WARN("[TopoPRM] topo_prm/max_topo_paths=%d is too high for real-time MPPI, clamping to 10", reserve_num_);
         reserve_num_ = 10;
     }
+    max_raw_paths_ = std::max(reserve_num_, std::min(max_raw_paths_, 1000));
     adaptive_retry_num_ = std::max(0, std::min(adaptive_retry_num_, 5));
     retry_sample_time_scale_ = std::max(1.0, retry_sample_time_scale_);
     retry_lateral_scale_ = std::max(1.0, retry_lateral_scale_);
@@ -133,6 +153,8 @@ void TopoPRM::init(ros::NodeHandle& nh, GridMap::Ptr grid_map) {
     grid_seed_clearance_ = std::max(0.05, grid_seed_clearance_);
     grid_seed_clearance_cost_weight_ = std::max(0.0, grid_seed_clearance_cost_weight_);
     grid_seed_reuse_penalty_ = std::max(0.0, grid_seed_reuse_penalty_);
+    grid_seed_shortcut_clearance_ = std::max(0.0, grid_seed_shortcut_clearance_);
+    shortcut_min_clearance_ = std::max(0.0, shortcut_min_clearance_);
     selection_smooth_weight_ = std::max(0.0, selection_smooth_weight_);
     selection_obstacle_weight_ = std::max(0.0, selection_obstacle_weight_);
     
@@ -151,16 +173,20 @@ void TopoPRM::init(ros::NodeHandle& nh, GridMap::Ptr grid_map) {
              fallback_vertical_on_empty_ ? "YES" : "NO",
              fallback_vertical_when_partial_ ? "YES" : "NO",
              fallback_center_vertical_when_partial_ ? "YES" : "NO");
-    ROS_INFO("[TopoPRM]    Grid corridor seeds: %s res=%.2f max_paths=%d lateral_scale=%.2f clearance=%.2f clear_cost_w=%.2f reuse_penalty=%.1f",
+    ROS_INFO("[TopoPRM]    Grid corridor seeds: %s fallback_empty=%s raw_near=%s res=%.2f max_paths=%d lateral_scale=%.2f clearance=%.2f clear_cost_w=%.2f reuse_penalty=%.1f shortcut_clear=%.2f",
              grid_seed_enabled_ ? "ON" : "OFF",
+             grid_fallback_on_empty_ ? "ON" : "OFF",
+             grid_seed_allow_near_obstacle_ ? "ON" : "OFF",
              grid_seed_resolution_, grid_seed_max_paths_,
              grid_seed_lateral_scale_, grid_seed_clearance_,
              grid_seed_clearance_cost_weight_,
-             grid_seed_reuse_penalty_);
+             grid_seed_reuse_penalty_, grid_seed_shortcut_clearance_);
     ROS_INFO("[TopoPRM]    Clearance-aware selection: %s smooth_w=%.1f obstacle_w=%.1f",
              clearance_aware_selection_ ? "ON" : "OFF",
              selection_smooth_weight_, selection_obstacle_weight_);
-    ROS_INFO("[TopoPRM]    Shortcut: iter=%d, parallel=%s", short_cut_num_, parallel_shortcut_ ? "YES" : "NO");
+    ROS_INFO("[TopoPRM]    Shortcut: iter=%d, parallel=%s min_clear=%.2f strict_guards=%s",
+             short_cut_num_, parallel_shortcut_ ? "YES" : "NO", shortcut_min_clearance_,
+             strict_guard_visibility_ ? "ON" : "OFF");
     ROS_INFO("[TopoPRM]    Reserve paths: %d (topo_prm/max_topo_paths)", reserve_num_);
     ROS_INFO("[TopoPRM]    Visualize: /topo_paths (raw polylines)");
     ROS_INFO("[TopoPRM]               /topo_paths_smooth (B-spline, published by ddo_planner)");
@@ -221,6 +247,21 @@ bool TopoPRM::searchTopoPaths(const Vector3d& start, const Vector3d& goal,
         }
     }
 
+    // A sparse random graph can miss a valid narrow corridor. Use the bounded
+    // grid search only after both PRM and geometric fallback are empty, so the
+    // common case keeps PRM speed while TopoFail gets a deterministic recovery.
+    if (accumulated_raw_paths.empty() && grid_fallback_on_empty_ &&
+        !grid_seed_enabled_) {
+        auto grid_fallback_paths = generateGridCorridorSeeds(start, goal);
+        if (!grid_fallback_paths.empty()) {
+            ROS_INFO("[TopoPRM] Empty-PRM grid fallback added %zu guide path(s)",
+                     grid_fallback_paths.size());
+            accumulated_raw_paths.insert(accumulated_raw_paths.end(),
+                                         grid_fallback_paths.begin(),
+                                         grid_fallback_paths.end());
+        }
+    }
+
     if (accumulated_raw_paths.empty()) {
         ROS_WARN("[TopoPRM] No paths found after adaptive PRM and deterministic fallback");
         clearGraph();
@@ -273,8 +314,8 @@ bool TopoPRM::runPRMAttempt(const Vector3d& start, const Vector3d& goal,
              sample_r_(0), sample_r_(1), sample_r_(2), clearance, sample_time_limit * 1000.0);
 
     //  STEP 2: 初始化start/goal为Guard节点 (Fast-Planner)
-    GraphNode* start_node = new GraphNode(start, 0);
-    GraphNode* goal_node = new GraphNode(goal, 1);
+    GraphNode* start_node = new GraphNode(start, GraphNode::Type::Guard, 0);
+    GraphNode* goal_node = new GraphNode(goal, GraphNode::Type::Guard, 1);
     graph_nodes_.push_back(start_node);
     graph_nodes_.push_back(goal_node);
     
@@ -308,7 +349,8 @@ bool TopoPRM::runPRMAttempt(const Vector3d& start, const Vector3d& goal,
         
         if (visib_guards.size() == 0) {
             // 看不到任何Guard → 这个点本身成为新Guard
-            GraphNode* guard = new GraphNode(pt, ++node_id);
+            GraphNode* guard =
+                new GraphNode(pt, GraphNode::Type::Guard, ++node_id);
             graph_nodes_.push_back(guard);
             
         } else if (visib_guards.size() == 2) {
@@ -320,7 +362,8 @@ bool TopoPRM::runPRMAttempt(const Vector3d& start, const Vector3d& goal,
             }
             
             // 需要连接 → 创建Connector节点
-            GraphNode* connector = new GraphNode(pt, ++node_id);
+            GraphNode* connector =
+                new GraphNode(pt, GraphNode::Type::Connector, ++node_id);
             graph_nodes_.push_back(connector);
             
             // 双向连接两个Guard
@@ -568,6 +611,34 @@ vector<vector<Vector3d>> TopoPRM::generateGridCorridorSeeds(
         return start + x_axis * x + y_axis * y + Vector3d(0.0, 0.0, z - start.z());
     };
 
+    auto pointUsableForGridSeed = [&](const Vector3d& p) {
+        if (!grid_map_->isInMap(p)) {
+            return false;
+        }
+        if (grid_seed_allow_near_obstacle_) {
+            return grid_map_->getOccupancy(p) != 1;
+        }
+        return !grid_map_->getInflateOccupancy(p);
+    };
+
+    auto segmentUsableForGridSeed = [&](const Vector3d& a, const Vector3d& b,
+                                        double min_clearance) {
+        const double len = (b - a).norm();
+        const int samples =
+            std::max(1, static_cast<int>(std::ceil(len / std::max(0.05, res * 0.5))));
+        for (int i = 0; i <= samples; ++i) {
+            const double alpha = static_cast<double>(i) / static_cast<double>(samples);
+            const Vector3d p = a * (1.0 - alpha) + b * alpha;
+            if (!pointUsableForGridSeed(p)) {
+                return false;
+            }
+            if (min_clearance > 1e-6 && grid_map_->getDistance(p) < min_clearance) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     auto nearestCell = [&](const Vector3d& p) {
         const Vector3d rel = p - start;
         const double x = rel.dot(x_axis);
@@ -585,7 +656,7 @@ vector<vector<Vector3d>> TopoPRM::generateGridCorridorSeeds(
         for (int iy = 0; iy < ny; ++iy) {
             const Vector3d p = gridToWorld(ix, iy);
             const int id = index(ix, iy);
-            if (!grid_map_->isInMap(p) || grid_map_->getInflateOccupancy(p)) {
+            if (!pointUsableForGridSeed(p)) {
                 continue;
             }
             const double d = grid_map_->getDistance(p);
@@ -630,6 +701,16 @@ vector<vector<Vector3d>> TopoPRM::generateGridCorridorSeeds(
         }
         raw.push_back(goal);
 
+        auto isShortcutSafe = [&](const Vector3d& a, const Vector3d& b) {
+            if (!segmentUsableForGridSeed(a, b, 0.0)) {
+                return false;
+            }
+            if (grid_seed_shortcut_clearance_ <= 1e-6) {
+                return true;
+            }
+            return segmentUsableForGridSeed(a, b, grid_seed_shortcut_clearance_);
+        };
+
         vector<Vector3d> simplified;
         simplified.reserve(raw.size());
         size_t anchor = 0;
@@ -637,7 +718,7 @@ vector<vector<Vector3d>> TopoPRM::generateGridCorridorSeeds(
         while (anchor + 1 < raw.size()) {
             size_t best = anchor + 1;
             for (size_t j = raw.size() - 1; j > anchor + 1; --j) {
-                if (isLineCollisionFree(raw[anchor], raw[j])) {
+                if (isShortcutSafe(raw[anchor], raw[j])) {
                     best = j;
                     break;
                 }
@@ -735,7 +816,12 @@ vector<vector<Vector3d>> TopoPRM::generateGridCorridorSeeds(
         }
 
         vector<Vector3d> candidate = compressPath(cell_path);
-        if (candidate.size() >= 2 && isPathValid(candidate)) {
+        bool candidate_valid = candidate.size() >= 2;
+        for (size_t i = 1; candidate_valid && i < candidate.size(); ++i) {
+            candidate_valid =
+                segmentUsableForGridSeed(candidate[i - 1], candidate[i], grid_seed_clearance_);
+        }
+        if (candidate_valid) {
             bool duplicate = false;
             for (const auto& existing : paths) {
                 if (sameTopoPath(candidate, existing)) {
@@ -784,9 +870,13 @@ vector<GraphNode*> TopoPRM::findVisibleGuards(const Vector3d& pt) {
     vector<GraphNode*> visib_guards;
     int visib_num = 0;
     
-    // 遍历所有节点,找可见的Guard (只检查id<=某个阈值的节点作为Guard候选)
-    // Fast-Planner策略: Guard是start/goal或者之前被标记为Guard的节点
+    // Only guards participate in visibility classification. Treating a
+    // connector as a guard suppresses valid graph growth after a few samples.
     for (size_t i = 0; i < graph_nodes_.size(); ++i) {
+        if (strict_guard_visibility_ &&
+            graph_nodes_[i]->type == GraphNode::Type::Connector) {
+            continue;
+        }
         // 检查可见性
         if (isLineCollisionFree(pt, graph_nodes_[i]->pos)) {
             visib_guards.push_back(graph_nodes_[i]);
@@ -1013,6 +1103,13 @@ bool TopoPRM::sameTopoPath(const vector<Vector3d>& path1,
 
 vector<Vector3d> TopoPRM::discretizePath(const vector<Vector3d>& path, int pt_num) {
     //  Fast-Planner版本
+    if (path.empty()) {
+        return {};
+    }
+    if (path.size() == 1 || pt_num <= 1) {
+        return {path.front()};
+    }
+
     vector<double> len_list;
     len_list.push_back(0.0);
     
@@ -1023,6 +1120,9 @@ vector<Vector3d> TopoPRM::discretizePath(const vector<Vector3d>& path, int pt_nu
     
     // 沿路径计算pt_num个点
     double len_total = len_list.back();
+    if (len_total < 1e-6) {
+        return vector<Vector3d>(static_cast<size_t>(pt_num), path.front());
+    }
     double dl = len_total / double(pt_num - 1);
     
     vector<Vector3d> dis_path;
@@ -1045,7 +1145,11 @@ vector<Vector3d> TopoPRM::discretizePath(const vector<Vector3d>& path, int pt_nu
         }
         
         // 插值
-        double lambda = (cur_l - len_list[idx]) / (len_list[idx + 1] - len_list[idx]);
+        const double seg_len = len_list[idx + 1] - len_list[idx];
+        double lambda = 0.0;
+        if (seg_len > 1e-6) {
+            lambda = (cur_l - len_list[idx]) / seg_len;
+        }
         Vector3d inter_pt = (1 - lambda) * path[idx] + lambda * path[idx + 1];
         dis_path.push_back(inter_pt);
     }
@@ -1149,12 +1253,39 @@ bool TopoPRM::isLineCollisionFree(const Vector3d& start, const Vector3d& end) {
     Vector3d dir = end - start;
     double dist = dir.norm();
     if (dist < 1e-6) return true;
-    
+
     dir.normalize();
-    
-    for (double t = 0; t <= dist; t += collision_check_resolution_) {
-        Vector3d point = start + t * dir;
+    const double step = std::max(0.05, collision_check_resolution_);
+    const int samples = std::max(1, static_cast<int>(std::ceil(dist / step)));
+
+    for (int i = 0; i <= samples; ++i) {
+        const double t = dist * static_cast<double>(i) / static_cast<double>(samples);
+        const Vector3d point = start + t * dir;
         if (grid_map_->getInflateOccupancy(point)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool TopoPRM::isLineClearanceFree(const Vector3d& start,
+                                  const Vector3d& end,
+                                  double min_clearance) {
+    Vector3d dir = end - start;
+    double dist = dir.norm();
+    if (dist < 1e-6) return true;
+
+    dir.normalize();
+    const double step = std::max(0.05, collision_check_resolution_);
+    const int samples = std::max(1, static_cast<int>(std::ceil(dist / step)));
+
+    for (int i = 0; i <= samples; ++i) {
+        const double t = dist * static_cast<double>(i) / static_cast<double>(samples);
+        const Vector3d point = start + t * dir;
+        if (grid_map_->getInflateOccupancy(point)) {
+            return false;
+        }
+        if (min_clearance > 1e-6 && grid_map_->getDistance(point) < min_clearance) {
             return false;
         }
     }
@@ -1397,7 +1528,7 @@ void TopoPRM::shortcutPath(vector<Eigen::Vector3d> path, int path_id, int iter_n
         
         for (size_t i = 1; i < dis_path.size(); ++i) {  // 修复类型比较警告
             // 尝试从当前点直接连到dis_path[i]
-            if (isLineCollisionFree(short_path.back(), dis_path[i])) {
+            if (isLineClearanceFree(short_path.back(), dis_path[i], shortcut_min_clearance_)) {
                 continue;  // 可见,跳过中间点
             }
 

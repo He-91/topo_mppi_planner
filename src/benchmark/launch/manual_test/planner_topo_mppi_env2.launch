@@ -16,8 +16,8 @@
     <arg name="cy" value="243.44969177246094"/>
     <arg name="fx" value="387.229248046875"/>
     <arg name="fy" value="387.229248046875"/>
-    <arg name="max_vel" value="2.0"/>
-    <arg name="max_acc" value="2.5"/>
+    <arg name="max_vel" value="2.5"/>
+    <arg name="max_acc" value="3.0"/>
     <arg name="max_z" value="2.2"/>
     <arg name="recovery_min_z" value="1.0"/>
     <arg name="planar_flight_z_lock" value="true"/>

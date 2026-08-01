@@ -47,9 +47,24 @@ namespace ego_planner
       cps_.points = init_points;
     }
 
+    if (init_points.cols() < 2)
+    {
+      ROS_ERROR("[BsplineOptimizer] Cannot initialize rebound from %d control point(s)",
+                static_cast<int>(init_points.cols()));
+      return {};
+    }
+
     /*** Segment the initial trajectory according to obstacles ***/
     constexpr int ENOUGH_INTERVAL = 2;
-    double step_size = grid_map_->getResolution() / ((init_points.col(0) - init_points.rightCols(1)).norm() / (init_points.cols() - 1)) / 2;
+    double accumulated_spacing = 0.0;
+    for (int i = 1; i < init_points.cols(); ++i)
+      accumulated_spacing += (init_points.col(i) - init_points.col(i - 1)).norm();
+    const double average_spacing =
+        accumulated_spacing / static_cast<double>(init_points.cols() - 1);
+    const double step_size = average_spacing > 1e-6
+                                 ? std::min(1.0, grid_map_->getResolution() /
+                                                     average_spacing / 2.0)
+                                 : 1.0;
     int in_id = 0, out_id = 0;  // 修复未初始化警告
     vector<std::pair<int, int>> segment_ids;
     int same_occ_state_times = ENOUGH_INTERVAL + 1;
@@ -207,6 +222,9 @@ namespace ego_planner
           else
             ++MPPI_id;
 
+          if (MPPI_id < 0 || MPPI_id >= (int)mppi_pathes[i].size())
+            break;
+
           val = (mppi_pathes[i][MPPI_id] - cps_.points.col(j)).dot(ctrl_pts_law);
 
           if (val * last_val <= 0 && (abs(val) > 0 || abs(last_val) > 0)) // val = last_val = 0.0 is not allowed
@@ -262,6 +280,9 @@ namespace ego_planner
             --MPPI_id;
           else
             ++MPPI_id;
+
+          if (MPPI_id < 0 || MPPI_id >= (int)mppi_pathes[i].size())
+            break;
 
           val = (mppi_pathes[i][MPPI_id] - middle_point).dot(ctrl_pts_law);
 

@@ -16,9 +16,16 @@
     <arg name="cy" value="243.44969177246094"/>
     <arg name="fx" value="387.229248046875"/>
     <arg name="fy" value="387.229248046875"/>
-    <arg name="max_vel" value="2.0"/>
-    <arg name="max_acc" value="2.5"/>
+    <arg name="max_vel" value="2.5"/>
+    <arg name="max_acc" value="3.0"/>
     <arg name="planning_horizon" value="9.0"/>
+    <arg name="dynamic_safety_time_buffer" value="0.10"/>
+    <arg name="dynamic_publish_preferred_distance" value="0.70"/>
+    <arg name="dynamic_exec_safety_enabled" value="true"/>
+    <arg name="dynamic_exec_safety_distance" value="0.50"/>
+    <arg name="dynamic_exec_safety_horizon" value="1.20"/>
+    <arg name="dynamic_exec_emergency_time" value="0.20"/>
+    <arg name="dynamic_exec_replan_cooldown" value="0.25"/>
     <arg name="planning_timing_log_enabled" value="true"/>
     <arg name="planning_timing_log_path" value="/tmp/topo_mppi_env3_planning_timing.csv"/>
     <arg name="candidate_quality_log_enabled" value="true"/>

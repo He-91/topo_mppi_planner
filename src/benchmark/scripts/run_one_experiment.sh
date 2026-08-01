@@ -48,6 +48,9 @@ case "$ENV_NAME" in
     env1|env3)
         GOAL_X=-19.0
         GOAL_Y=0.0
+        MIN_SUCCESS_TRAJ_LENGTH=25.0
+        MIN_COMPLETION_ELAPSED=20
+        REQUIRE_BENCHMARK_COMPLETION=1
         ;;
     env4)
         GOAL_X=-19.0
@@ -319,6 +322,100 @@ if [[ "$EXP_NAME" == fast_* ]]; then
     ) &
     TRIGGER_PID=$!
     sleep 10  # Wait for first trigger to take effect
+fi
+
+# TGK-Planner does not consume /move_base_simple/goal. Its FSM subscribes to
+# /goal as quadrotor_msgs/PositionCommand and only accepts one target at a time,
+# so benchmark automation must feed the route waypoints sequentially.
+if [[ "$EXP_NAME" == tgk_* ]]; then
+    echo "[${EXP_NAME}] TGK-Planner detected: starting /goal waypoint trigger loop"
+    (
+        sleep 5
+        TGK_X=()
+        TGK_Y=()
+        TGK_Z=()
+        case "$ENV_NAME" in
+            env1|env3)
+                # The original EGO/Fast route uses (19,10,1), but TGK marks
+                # that boundary goal as out of bound in the 40x20m map. Use
+                # the same long-range traversal endpoints for a valid baseline.
+                TGK_X=(19.0 -19.0)
+                TGK_Y=(0.0 0.0)
+                TGK_Z=(1.0 1.0)
+                ;;
+            env2)
+                TGK_X=(-15.0 0.0 15.0 0.0 -15.0)
+                TGK_Y=(0.0 15.0 0.0 -15.0 0.0)
+                TGK_Z=(1.0 1.0 1.0 1.0 1.0)
+                ;;
+            env4)
+                TGK_X=(19.0 -19.0)
+                TGK_Y=(0.0 0.0)
+                TGK_Z=(1.0 1.0)
+                ;;
+            env5)
+                TGK_X=(16.0 -16.0)
+                TGK_Y=(0.0 0.0)
+                TGK_Z=(1.0 1.0)
+                ;;
+            *)
+                TGK_X=("$GOAL_X")
+                TGK_Y=("$GOAL_Y")
+                TGK_Z=("$GOAL_Z")
+                ;;
+        esac
+
+        publish_tgk_goal() {
+            local gx="$1" gy="$2" gz="$3"
+            rostopic pub -1 /goal quadrotor_msgs/PositionCommand \
+              "{ header: { frame_id: 'world' }, trajectory_flag: 0, trajectory_id: 0, position: { x: ${gx}, y: ${gy}, z: ${gz} }, velocity: { x: 0.0, y: 0.0, z: 0.0 }, acceleration: { x: 0.0, y: 0.0, z: 0.0 }, yaw: 0.0, yaw_dot: 0.0 }" >/dev/null 2>&1
+            rostopic pub -1 /traj_start_trigger geometry_msgs/PoseStamped \
+              "{ header: { frame_id: 'world' }, pose: { orientation: { w: 1.0 } } }" >/dev/null 2>&1
+        }
+
+        wp_idx=0
+        last_pub=0
+        total_wp=${#TGK_X[@]}
+        echo "[${EXP_NAME}] TGK route has ${total_wp} waypoints"
+        while kill -0 $PLAN_PID 2>/dev/null; do
+            if [ "$wp_idx" -ge "$total_wp" ]; then
+                sleep 3
+                continue
+            fi
+
+            now=$(date +%s)
+            if [ $((now - last_pub)) -ge 8 ]; then
+                echo "[${EXP_NAME}] TGK publish waypoint $((wp_idx + 1))/${total_wp}: (${TGK_X[$wp_idx]}, ${TGK_Y[$wp_idx]}, ${TGK_Z[$wp_idx]})"
+                publish_tgk_goal "${TGK_X[$wp_idx]}" "${TGK_Y[$wp_idx]}" "${TGK_Z[$wp_idx]}"
+                last_pub=$now
+            fi
+
+            cur=$(timeout 2 rostopic echo /visual_slam/odom -n 1 2>/dev/null | awk '
+                /position:/ {p=1; next}
+                p && /x:/ {x=$2}
+                p && /y:/ {y=$2}
+                p && /z:/ {z=$2; printf "%.3f %.3f %.3f", x, y, z; exit}
+            ')
+            if [ -n "$cur" ]; then
+                dist=$(awk -v cur="$cur" -v gx="${TGK_X[$wp_idx]}" -v gy="${TGK_Y[$wp_idx]}" -v gz="${TGK_Z[$wp_idx]}" '
+                    BEGIN {
+                        split(cur, a, " ");
+                        dx=a[1]-gx; dy=a[2]-gy; dz=a[3]-gz;
+                        printf "%.3f", sqrt(dx*dx + dy*dy + dz*dz);
+                    }')
+                if awk -v d="$dist" 'BEGIN { exit !(d <= 1.0) }'; then
+                    echo "[${EXP_NAME}] TGK reached waypoint $((wp_idx + 1))/${total_wp} (dist=${dist}m)"
+                    wp_idx=$((wp_idx + 1))
+                    last_pub=0
+                    sleep 2
+                    continue
+                fi
+            fi
+            sleep 2
+        done
+    ) &
+    TRIGGER_PID=$!
+    sleep 10
 fi
 
 # ── Step 3: Monitor ──

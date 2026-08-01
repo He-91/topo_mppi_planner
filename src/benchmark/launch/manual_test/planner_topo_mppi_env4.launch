@@ -18,17 +18,19 @@
     <arg name="max_vel" value="2.0"/>
     <arg name="max_acc" value="2.5"/>
     <arg name="use_structured_dynamic_surface_check" value="false"/>
-    <arg name="dynamic_publish_preferred_distance" value="0.65"/>
+    <arg name="dynamic_safety_time_buffer" value="0.10"/>
+    <arg name="dynamic_publish_preferred_distance" value="0.72"/>
     <arg name="mppi_dynamic_collision_distance" value="0.30"/>
     <arg name="mppi_dynamic_temporal_modes_enabled" value="false"/>
     <arg name="mppi_dynamic_temporal_mode_count" value="4"/>
     <arg name="mppi_dynamic_temporal_cautious_scale" value="0.55"/>
     <arg name="mppi_dynamic_temporal_fast_scale" value="1.15"/>
     <arg name="mppi_dynamic_temporal_yield_steps" value="8"/>
-    <arg name="dynamic_exec_safety_enabled" value="false"/>
-    <arg name="dynamic_exec_safety_distance" value="0.30"/>
-    <arg name="dynamic_exec_safety_horizon" value="0.80"/>
-    <arg name="dynamic_exec_emergency_time" value="0.35"/>
+    <arg name="dynamic_exec_safety_enabled" value="true"/>
+    <arg name="dynamic_exec_safety_distance" value="0.55"/>
+    <arg name="dynamic_exec_safety_horizon" value="1.20"/>
+    <arg name="dynamic_exec_emergency_time" value="0.20"/>
+    <arg name="dynamic_exec_replan_cooldown" value="0.25"/>
     <arg name="dynamic_escape_start_skip_time" value="0.35"/>
     <arg name="planning_horizon" value="7.5"/>
     <arg name="planning_timing_log_enabled" value="true"/>

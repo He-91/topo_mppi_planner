@@ -148,6 +148,8 @@ namespace ego_planner
     nh.param("fsm/recovery_min_z", recovery_min_z_, recovery_min_z_);
     recovery_min_z_ = std::min(max_z_ - 0.1, std::max(publish_min_z_, recovery_min_z_));
     nh.param("manager/planar_flight_z_lock", planar_flight_z_lock_, planar_flight_z_lock_);
+    nh.param("manager/planar_flight_z_lock_dynamic", planar_flight_z_lock_dynamic_,
+             planar_flight_z_lock_dynamic_);
     
     // Multi-topology MPPI optimization. Keep the old parameter name as a
     // compatibility alias for existing launch files.
@@ -177,6 +179,39 @@ namespace ego_planner
     nh.param("manager/mode_score/static_scene_preferred_clearance_score_slack",
              static_scene_preferred_clearance_score_slack_,
              static_scene_preferred_clearance_score_slack_);
+    nh.param("manager/mode_score/static_scene_topo_safe_switch_after_failures",
+             static_scene_topo_safe_switch_after_failures_,
+             static_scene_topo_safe_switch_after_failures_);
+    nh.param("manager/mode_score/static_scene_clearance_first_enabled",
+             static_scene_clearance_first_enabled_,
+             static_scene_clearance_first_enabled_);
+    nh.param("manager/mode_score/static_scene_clearance_first_score_slack",
+             static_scene_clearance_first_score_slack_,
+             static_scene_clearance_first_score_slack_);
+    nh.param("manager/mode_score/static_scene_clearance_first_reward",
+             static_scene_clearance_first_reward_,
+             static_scene_clearance_first_reward_);
+    nh.param("manager/mode_score/static_scene_clearance_first_topo_reward",
+             static_scene_clearance_first_topo_reward_,
+             static_scene_clearance_first_topo_reward_);
+    nh.param("manager/mode_score/static_scene_clearance_first_min_improvement",
+             static_scene_clearance_first_min_improvement_,
+             static_scene_clearance_first_min_improvement_);
+    nh.param("manager/mode_score/static_scene_clearance_first_progress_margin",
+             static_scene_clearance_first_progress_margin_,
+             static_scene_clearance_first_progress_margin_);
+    nh.param("manager/mode_score/static_scene_clearance_first_goal_margin",
+             static_scene_clearance_first_goal_margin_,
+             static_scene_clearance_first_goal_margin_);
+    nh.param("manager/mode_score/publishable_candidate_precheck_enabled",
+             publishable_candidate_precheck_enabled_,
+             publishable_candidate_precheck_enabled_);
+    nh.param("manager/mode_score/publishable_candidate_score_slack",
+             publishable_candidate_score_slack_,
+             publishable_candidate_score_slack_);
+    nh.param("manager/mode_score/publishable_candidate_clearance_reward",
+             publishable_candidate_clearance_reward_,
+             publishable_candidate_clearance_reward_);
     nh.param("manager/mode_score/reverse_progress_weight", mode_score_reverse_progress_weight_, mode_score_reverse_progress_weight_);
     nh.param("manager/mode_score/weak_progress_weight", mode_score_weak_progress_weight_, mode_score_weak_progress_weight_);
     nh.param("manager/mode_score/min_progress", mode_score_min_progress_, mode_score_min_progress_);
@@ -187,6 +222,27 @@ namespace ego_planner
     nh.param("manager/mode_score/early_progress_weight", mode_score_early_progress_weight_, mode_score_early_progress_weight_);
     nh.param("manager/mode_score/min_early_progress", mode_score_min_early_progress_, mode_score_min_early_progress_);
     nh.param("manager/mode_score/safety_skip_points", mode_score_safety_skip_points_, mode_score_safety_skip_points_);
+    nh.param("manager/risk_score/enabled", risk_score_enabled_, risk_score_enabled_);
+    nh.param("manager/risk_score/tail_fraction", risk_score_tail_fraction_, risk_score_tail_fraction_);
+    nh.param("manager/risk_score/static_margin", risk_score_static_margin_, risk_score_static_margin_);
+    nh.param("manager/risk_score/static_weight", risk_score_static_weight_, risk_score_static_weight_);
+    nh.param("manager/risk_score/dynamic_margin", risk_score_dynamic_margin_, risk_score_dynamic_margin_);
+    nh.param("manager/risk_score/dynamic_weight", risk_score_dynamic_weight_, risk_score_dynamic_weight_);
+    nh.param("manager/guide_consistency_score/enabled",
+             guide_consistency_score_enabled_,
+             guide_consistency_score_enabled_);
+    nh.param("manager/guide_consistency_score/weight",
+             guide_consistency_weight_,
+             guide_consistency_weight_);
+    nh.param("manager/guide_consistency_score/check_resolution",
+             guide_consistency_check_resolution_,
+             guide_consistency_check_resolution_);
+    nh.param("manager/guide_consistency_score/stride",
+             guide_consistency_stride_,
+             guide_consistency_stride_);
+    nh.param("manager/guide_consistency_score/max_link_dist",
+             guide_consistency_max_link_dist_,
+             guide_consistency_max_link_dist_);
     nh.param("manager/mppi_seed_preserve_clearance", mppi_seed_preserve_clearance_, mppi_seed_preserve_clearance_);
     nh.param("manager/safe_seed_time_stretch_max", safe_seed_time_stretch_max_, safe_seed_time_stretch_max_);
     nh.param("manager/bspline_skip_threshold", bspline_skip_threshold_, bspline_skip_threshold_);
@@ -200,12 +256,24 @@ namespace ego_planner
     nh.param("manager/final_dynamic_static_check_time", final_dynamic_static_check_time_, final_dynamic_static_check_time_);
     nh.param("manager/final_static_check_start_skip", final_static_check_start_skip_, final_static_check_start_skip_);
     nh.param("manager/final_fallback_feasibility_repair", final_fallback_feasibility_repair_, final_fallback_feasibility_repair_);
+    nh.param("manager/final_fallback_soft_feasibility_repair",
+             final_fallback_soft_feasibility_repair_,
+             final_fallback_soft_feasibility_repair_);
     nh.param("manager/final_fallback_relaxed_derivative_repair",
              final_fallback_relaxed_derivative_repair_,
              final_fallback_relaxed_derivative_repair_);
     nh.param("manager/final_fallback_relaxed_velocity_scale",
              final_fallback_relaxed_velocity_scale_,
              final_fallback_relaxed_velocity_scale_);
+    nh.param("manager/short_horizon_fallback_enabled",
+             short_horizon_fallback_enabled_,
+             short_horizon_fallback_enabled_);
+    nh.param("manager/short_horizon_fallback_time",
+             short_horizon_fallback_time_,
+             short_horizon_fallback_time_);
+    nh.param("manager/short_horizon_fallback_min_points",
+             short_horizon_fallback_min_points_,
+             short_horizon_fallback_min_points_);
     nh.param("manager/final_publish_feasibility_gate_enabled",
              final_publish_feasibility_gate_enabled_,
              final_publish_feasibility_gate_enabled_);
@@ -217,6 +285,21 @@ namespace ego_planner
              geometric_seed_repair_step_, geometric_seed_repair_step_);
     nh.param("manager/geometric_seed_repair_iterations",
              geometric_seed_repair_iterations_, geometric_seed_repair_iterations_);
+    nh.param("manager/bspline_control_point_repair_enabled",
+             bspline_control_point_repair_enabled_,
+             bspline_control_point_repair_enabled_);
+    nh.param("manager/bspline_control_point_repair_clearance",
+             bspline_control_point_repair_clearance_,
+             bspline_control_point_repair_clearance_);
+    nh.param("manager/bspline_control_point_repair_step",
+             bspline_control_point_repair_step_,
+             bspline_control_point_repair_step_);
+    nh.param("manager/bspline_control_point_repair_iterations",
+             bspline_control_point_repair_iterations_,
+             bspline_control_point_repair_iterations_);
+    nh.param("manager/bspline_control_point_repair_protect_cols",
+             bspline_control_point_repair_protect_cols_,
+             bspline_control_point_repair_protect_cols_);
     nh.param("manager/final_dynamic_min_distance", final_dynamic_min_distance_, final_dynamic_min_distance_);
     nh.param("manager/dynamic_publish_preferred_distance", dynamic_publish_preferred_distance_, dynamic_publish_preferred_distance_);
     nh.param("manager/dynamic_distance_radius_compensation", dynamic_distance_radius_compensation_, dynamic_distance_radius_compensation_);
@@ -227,6 +310,7 @@ namespace ego_planner
     nh.param("manager/static_escape_max_initial_clearance", static_escape_max_initial_clearance_, static_escape_max_initial_clearance_);
     nh.param("manager/static_escape_min_post_clearance", static_escape_min_post_clearance_, static_escape_min_post_clearance_);
     nh.param("manager/max_mppi_topo_candidates", max_mppi_topo_candidates_, max_mppi_topo_candidates_);
+    nh.param("manager/topo_prefilter/length_weight", topo_prefilter_length_weight_, topo_prefilter_length_weight_);
     nh.param("manager/topo_prefilter/clearance_weight", topo_prefilter_clearance_weight_, topo_prefilter_clearance_weight_);
     nh.param("manager/topo_prefilter/dynamic_weight", topo_prefilter_dynamic_weight_, topo_prefilter_dynamic_weight_);
     nh.param("manager/topo_prefilter/clearance_margin", topo_prefilter_clearance_margin_, topo_prefilter_clearance_margin_);
@@ -235,6 +319,12 @@ namespace ego_planner
     nh.param("manager/cached_topo_goal_reuse_max_dist", cached_topo_goal_reuse_max_dist_, cached_topo_goal_reuse_max_dist_);
     nh.param("manager/cache_only_published_topo_paths", cache_only_published_topo_paths_, cache_only_published_topo_paths_);
     nh.param("manager/prefer_cached_topo_paths", prefer_cached_topo_paths_, prefer_cached_topo_paths_);
+    nh.param("manager/cached_topo_allow_near_obstacle",
+             cached_topo_allow_near_obstacle_,
+             cached_topo_allow_near_obstacle_);
+    nh.param("manager/cached_topo_min_raw_clearance",
+             cached_topo_min_raw_clearance_,
+             cached_topo_min_raw_clearance_);
     nh.param("manager/ablation_disable_topo_guidance", ablation_disable_topo_guidance_, ablation_disable_topo_guidance_);
     nh.param("manager/ablation_disable_mppi_optimization", ablation_disable_mppi_optimization_, ablation_disable_mppi_optimization_);
     nh.param("manager/planning_timing_log_enabled", planning_timing_log_enabled_, planning_timing_log_enabled_);
@@ -248,8 +338,35 @@ namespace ego_planner
     mode_score_path_length_weight_ = std::max(0.0, mode_score_path_length_weight_);
     mode_score_overshoot_weight_ = std::max(0.0, mode_score_overshoot_weight_);
     mode_score_early_progress_weight_ = std::max(0.0, mode_score_early_progress_weight_);
+    risk_score_tail_fraction_ = std::min(1.0, std::max(0.05, risk_score_tail_fraction_));
+    risk_score_static_margin_ = std::max(0.0, risk_score_static_margin_);
+    risk_score_dynamic_margin_ = std::max(0.0, risk_score_dynamic_margin_);
+    risk_score_static_weight_ = std::max(0.0, risk_score_static_weight_);
+    risk_score_dynamic_weight_ = std::max(0.0, risk_score_dynamic_weight_);
+    guide_consistency_weight_ = std::max(0.0, guide_consistency_weight_);
+    guide_consistency_check_resolution_ = std::max(0.05, guide_consistency_check_resolution_);
+    guide_consistency_stride_ = std::max(1, guide_consistency_stride_);
+    guide_consistency_max_link_dist_ = std::max(0.25, guide_consistency_max_link_dist_);
     static_scene_preferred_clearance_score_slack_ =
         std::max(0.0, static_scene_preferred_clearance_score_slack_);
+    static_scene_topo_safe_switch_after_failures_ =
+        std::max(0, static_scene_topo_safe_switch_after_failures_);
+    static_scene_clearance_first_score_slack_ =
+        std::max(0.0, static_scene_clearance_first_score_slack_);
+    static_scene_clearance_first_reward_ =
+        std::max(0.0, static_scene_clearance_first_reward_);
+    static_scene_clearance_first_topo_reward_ =
+        std::max(0.0, static_scene_clearance_first_topo_reward_);
+    static_scene_clearance_first_min_improvement_ =
+        std::max(0.0, static_scene_clearance_first_min_improvement_);
+    static_scene_clearance_first_progress_margin_ =
+        std::max(0.0, static_scene_clearance_first_progress_margin_);
+    static_scene_clearance_first_goal_margin_ =
+        std::max(0.0, static_scene_clearance_first_goal_margin_);
+    publishable_candidate_score_slack_ =
+        std::max(0.0, publishable_candidate_score_slack_);
+    publishable_candidate_clearance_reward_ =
+        std::max(0.0, publishable_candidate_clearance_reward_);
     max_mppi_topo_candidates_ = std::max(1, max_mppi_topo_candidates_);
     bspline_skip_threshold_ = std::max(1, bspline_skip_threshold_);
     safe_seed_time_stretch_max_ = std::max(1.0, safe_seed_time_stretch_max_);
@@ -262,11 +379,23 @@ namespace ego_planner
     final_static_check_start_skip_ = std::min(1.2, std::max(0.0, final_static_check_start_skip_));
     final_fallback_relaxed_velocity_scale_ =
         std::min(1.0, std::max(0.1, final_fallback_relaxed_velocity_scale_));
+    short_horizon_fallback_time_ =
+        std::min(2.5, std::max(0.3, short_horizon_fallback_time_));
+    short_horizon_fallback_min_points_ =
+        std::min(30, std::max(4, short_horizon_fallback_min_points_));
     geometric_seed_repair_clearance_ =
         std::max(final_static_min_clearance_, geometric_seed_repair_clearance_);
     geometric_seed_repair_step_ = std::max(0.02, geometric_seed_repair_step_);
     geometric_seed_repair_iterations_ =
         std::max(1, geometric_seed_repair_iterations_);
+    bspline_control_point_repair_clearance_ =
+        std::max(final_static_min_clearance_, bspline_control_point_repair_clearance_);
+    bspline_control_point_repair_step_ =
+        std::max(0.02, bspline_control_point_repair_step_);
+    bspline_control_point_repair_iterations_ =
+        std::max(1, bspline_control_point_repair_iterations_);
+    bspline_control_point_repair_protect_cols_ =
+        std::max(1, bspline_control_point_repair_protect_cols_);
     final_dynamic_min_distance_ = std::max(0.1, final_dynamic_min_distance_);
     dynamic_publish_preferred_distance_ =
         std::max(final_dynamic_min_distance_, dynamic_publish_preferred_distance_);
@@ -279,14 +408,16 @@ namespace ego_planner
     topo_safety_start_skip_dist_ = std::max(0.0, topo_safety_start_skip_dist_);
     cached_topo_rebase_max_dist_ = std::max(0.5, cached_topo_rebase_max_dist_);
     cached_topo_goal_reuse_max_dist_ = std::max(0.5, cached_topo_goal_reuse_max_dist_);
+    cached_topo_min_raw_clearance_ = std::max(0.0, cached_topo_min_raw_clearance_);
     ROS_INFO("[PlannerManager] Multi-topology MPPI optimization: %s", pp_.use_multi_topo_mppi_optimization ? "ENABLED" : "DISABLED");
     if (pp_.use_multi_topo_mppi_optimization && legacy_parallel_mppi) {
       ROS_WARN("[PlannerManager] manager/use_parallel_mppi_optimization is deprecated; use manager/use_multi_topo_mppi_optimization");
     }
     ROS_INFO("[PlannerManager] Z safety bounds: hard=[%.2f, %.2f], publish_min=%.2f, recovery_min=%.2f",
              min_z_, max_z_, publish_min_z_, recovery_min_z_);
-    ROS_INFO("[PlannerManager] Planar flight z lock: %s",
-             planar_flight_z_lock_ ? "ON" : "OFF");
+    ROS_INFO("[PlannerManager] Planar flight z lock: %s dynamic=%s",
+             planar_flight_z_lock_ ? "ON" : "OFF",
+             planar_flight_z_lock_dynamic_ ? "ON" : "OFF");
     ROS_INFO("[PlannerManager] Mode score params: goal=%.1f clearance=%.1f@%.2fm dynamic=%.1f@%.2fm progress=%.1f/%.1f@%.2f early=%.1f@%.2f direction=%.1f@%.2f length=%.1f overshoot=%.1f skip_pts=%d",
              mode_score_goal_weight_, mode_score_clearance_weight_, mode_score_clearance_margin_,
              mode_score_dynamic_weight_, mode_score_dynamic_margin_,
@@ -294,6 +425,17 @@ namespace ego_planner
              mode_score_min_progress_, mode_score_early_progress_weight_, mode_score_min_early_progress_,
              mode_score_direction_weight_, mode_score_min_direction_cos_,
              mode_score_path_length_weight_, mode_score_overshoot_weight_, mode_score_safety_skip_points_);
+    ROS_INFO("[PlannerManager] Risk-aware candidate score: %s tail=%.2f static=%.1f@%.2fm dynamic=%.1f@%.2fm",
+             risk_score_enabled_ ? "ON" : "OFF",
+             risk_score_tail_fraction_,
+             risk_score_static_weight_, risk_score_static_margin_,
+             risk_score_dynamic_weight_, risk_score_dynamic_margin_);
+    ROS_INFO("[PlannerManager] Guide consistency score: %s weight=%.1f resolution=%.2fm stride=%d max_link=%.2fm",
+             guide_consistency_score_enabled_ ? "ON" : "OFF",
+             guide_consistency_weight_,
+             guide_consistency_check_resolution_,
+             guide_consistency_stride_,
+             guide_consistency_max_link_dist_);
     ROS_INFO("[PlannerManager] Dynamic scene safety gate: unsafe<%.2fm preferred>=%.2fm slack=%.1f",
              dynamic_scene_unsafe_clearance_, dynamic_scene_preferred_clearance_,
              dynamic_scene_safe_cost_slack_);
@@ -305,6 +447,20 @@ namespace ego_planner
              static_scene_min_clearance_improvement_,
              static_scene_preferred_clearance_gate_enabled_ ? "ON" : "OFF",
              static_scene_preferred_clearance_score_slack_);
+    ROS_INFO("[PlannerManager] Static topo-safe switch after failures: %d",
+             static_scene_topo_safe_switch_after_failures_);
+    ROS_INFO("[PlannerManager] Static clearance-first selection: %s slack=%.1f reward=%.1f topo_reward=%.1f improve=%.2fm progress_margin=%.2f goal_margin=%.2fm",
+             static_scene_clearance_first_enabled_ ? "ON" : "OFF",
+             static_scene_clearance_first_score_slack_,
+             static_scene_clearance_first_reward_,
+             static_scene_clearance_first_topo_reward_,
+             static_scene_clearance_first_min_improvement_,
+             static_scene_clearance_first_progress_margin_,
+             static_scene_clearance_first_goal_margin_);
+    ROS_INFO("[PlannerManager] Publishable candidate precheck: %s slack=%.1f clearance_reward=%.1f",
+             publishable_candidate_precheck_enabled_ ? "ON" : "OFF",
+             publishable_candidate_score_slack_,
+             publishable_candidate_clearance_reward_);
     ROS_INFO("[PlannerManager] MPPI seed preserve clearance: %.2fm", mppi_seed_preserve_clearance_);
     ROS_INFO("[PlannerManager] Planning timing CSV: %s (%s)",
              planning_timing_log_path_.c_str(),
@@ -329,12 +485,20 @@ namespace ego_planner
     ROS_INFO("[PlannerManager] Final static check start skip: %.2fs", final_static_check_start_skip_);
     ROS_INFO("[PlannerManager] Final fallback feasibility repair: %s",
              final_fallback_feasibility_repair_ ? "ON" : "OFF");
+    ROS_INFO("[PlannerManager] Final fallback soft feasibility repair: %s",
+             final_fallback_soft_feasibility_repair_ ? "ON" : "OFF");
     ROS_INFO("[PlannerManager] Final publish feasibility gate: %s",
              final_publish_feasibility_gate_enabled_ ? "ON" : "OFF");
     ROS_INFO("[PlannerManager] Geometric seed repair: %s target=%.2fm step=%.2fm iter=%d",
              geometric_seed_repair_enabled_ ? "ON" : "OFF",
              geometric_seed_repair_clearance_, geometric_seed_repair_step_,
              geometric_seed_repair_iterations_);
+    ROS_INFO("[PlannerManager] B-spline control-point repair: %s target=%.2fm step=%.2fm iter=%d protect=%d",
+             bspline_control_point_repair_enabled_ ? "ON" : "OFF",
+             bspline_control_point_repair_clearance_,
+             bspline_control_point_repair_step_,
+             bspline_control_point_repair_iterations_,
+             bspline_control_point_repair_protect_cols_);
     ROS_INFO("[PlannerManager] Dynamic-scene final gates: static_window=%.2f/%.2fs dynamic_min=%.2fm",
              final_dynamic_static_check_fraction_, final_dynamic_static_check_time_,
              final_dynamic_min_distance_);
@@ -349,8 +513,8 @@ namespace ego_planner
     ROS_INFO("[PlannerManager] Static escape check: after_failures=%d start_skip=%.2fs initial<=%.2fm post>=%.2fm",
              static_escape_check_after_failures_, static_escape_check_start_skip_,
              static_escape_max_initial_clearance_, static_escape_min_post_clearance_);
-    ROS_INFO("[PlannerManager] Topo prefilter: max_candidates=%d clearance_weight=%.1f dynamic_weight=%.1f margin=%.2f start_skip=%.2fm",
-             max_mppi_topo_candidates_, topo_prefilter_clearance_weight_,
+    ROS_INFO("[PlannerManager] Topo prefilter: max_candidates=%d length_weight=%.2f clearance_weight=%.1f dynamic_weight=%.1f margin=%.2f start_skip=%.2fm",
+             max_mppi_topo_candidates_, topo_prefilter_length_weight_, topo_prefilter_clearance_weight_,
              topo_prefilter_dynamic_weight_, topo_prefilter_clearance_margin_,
              topo_safety_start_skip_dist_);
     ROS_INFO("[PlannerManager] Cached topo rebase max distance: %.2fm, goal reuse max: %.2fm",
@@ -359,6 +523,9 @@ namespace ego_planner
              cache_only_published_topo_paths_ ? "published trajectory only" : "topo search success");
     ROS_INFO("[PlannerManager] Prefer cached published topo before fresh search: %s",
              prefer_cached_topo_paths_ ? "ON" : "OFF");
+    ROS_INFO("[PlannerManager] Cached topo near-obstacle reuse: %s raw_clearance>=%.2fm",
+             cached_topo_allow_near_obstacle_ ? "ON" : "OFF",
+             cached_topo_min_raw_clearance_);
     if (ablation_disable_topo_guidance_ || ablation_disable_mppi_optimization_) {
       ROS_WARN("[PlannerManager] ABLATION MODE: topo_guidance=%s, mppi_optimization=%s",
                ablation_disable_topo_guidance_ ? "DISABLED" : "ENABLED",
@@ -1077,6 +1244,84 @@ namespace ego_planner
     return changed;
   }
 
+  bool EGOPlannerManager::repairBsplineControlPointsByClearance(
+      Eigen::MatrixXd &control_points) const {
+    if (!bspline_control_point_repair_enabled_ || grid_map_ == nullptr ||
+        control_points.cols() < 6) {
+      return false;
+    }
+
+    const int cols = control_points.cols();
+    const int protect = std::min(std::max(1, bspline_control_point_repair_protect_cols_),
+                                 std::max(1, cols / 3));
+    const int first_idx = protect;
+    const int last_idx = cols - protect - 1;
+    if (first_idx > last_idx) {
+      return false;
+    }
+
+    const double target_clearance =
+        std::max(final_static_min_clearance_, bspline_control_point_repair_clearance_);
+    const double max_step = bspline_control_point_repair_step_;
+    bool changed = false;
+    int changed_points = 0;
+
+    for (int iter = 0; iter < bspline_control_point_repair_iterations_; ++iter) {
+      bool iter_changed = false;
+      for (int i = first_idx; i <= last_idx; ++i) {
+        Eigen::Vector3d point = control_points.col(i);
+        if (!grid_map_->isInMap(point)) {
+          continue;
+        }
+
+        Eigen::Vector3d grad = Eigen::Vector3d::Zero();
+        const double dist = grid_map_->getDistanceWithGrad(point, grad);
+        if (dist >= target_clearance) {
+          continue;
+        }
+
+        grad.z() = 0.0;
+        if (grad.norm() < 1e-3 && i > 0 && i + 1 < cols) {
+          const Eigen::Vector3d tangent =
+              control_points.col(i + 1) - control_points.col(i - 1);
+          grad = Eigen::Vector3d(-tangent.y(), tangent.x(), 0.0);
+        }
+        if (grad.norm() < 1e-3) {
+          continue;
+        }
+
+        const double deficit = std::max(0.0, target_clearance - dist);
+        const double push = std::min(max_step, deficit + 0.04);
+        Eigen::Vector3d candidate = point + push * grad.normalized();
+        candidate.z() = std::min(max_z_ - 0.05,
+                                 std::max(publish_min_z_, candidate.z()));
+        if (!grid_map_->isInMap(candidate)) {
+          continue;
+        }
+
+        const double candidate_dist = grid_map_->getDistance(candidate);
+        if (candidate_dist <= dist + 1e-3) {
+          continue;
+        }
+
+        control_points.col(i) = candidate;
+        iter_changed = true;
+        changed = true;
+        ++changed_points;
+      }
+
+      if (!iter_changed) {
+        break;
+      }
+    }
+
+    if (changed) {
+      ROS_INFO("[PlannerManager] B-spline control-point repair moved %d internal point update(s) toward %.2fm clearance",
+               changed_points, target_clearance);
+    }
+    return changed;
+  }
+
   // !SECTION
 
   // SECTION rebond replanning
@@ -1316,9 +1561,8 @@ namespace ego_planner
     Eigen::MatrixXd ctrl_pts;
     UniformBspline::parameterizeToBspline(ts, point_set, start_end_derivatives, ctrl_pts);
 
-    //  Initialize B-spline optimizer internal structures
-    // Note: After architecture refactor (Topo→MPPI→BSpline), initControlPoints() now 
-    // initializes with topological/MPPI-optimized points, then BsplineOptimizer refines them
+    // Initialize the inherited rebound seed. Topo/MPPI can replace ctrl_pts
+    // below, while this seed remains the stable local-recovery baseline.
     vector<vector<Eigen::Vector3d>> a_star_pathes;
     a_star_pathes = bspline_optimizer_rebound_->initControlPoints(ctrl_pts, true);
 
@@ -1423,7 +1667,9 @@ namespace ego_planner
                 const double dynamic_penalty =
                     topo_prefilter_dynamic_weight_ *
                     std::max(0.0, dynamic_scene_preferred_clearance_ - result.min_dynamic_dist);
-                result.score = path.cost + result.length + clearance_penalty + dynamic_penalty;
+                result.score = path.cost +
+                               topo_prefilter_length_weight_ * result.length +
+                               clearance_penalty + dynamic_penalty;
                 return result;
             };
 
@@ -1493,10 +1739,54 @@ namespace ego_planner
                     double min_dynamic_dist;
                     double topo_min_clearance;
                     double topo_min_dynamic_dist;
+                    double static_tail_risk;
+                    double dynamic_tail_risk;
+                    double guide_consistency_risk;
+                    double risk_score;
                     bool success;
                 };
                 
                 std::vector<MPPICandidate> mppi_candidates(topo_paths.size());
+                auto tailMean = [this](std::vector<double> values) {
+                    if (values.empty()) {
+                        return 0.0;
+                    }
+                    std::sort(values.begin(), values.end(),
+                              [](double lhs, double rhs) { return lhs > rhs; });
+                    const size_t tail_count = std::max<size_t>(
+                        1, static_cast<size_t>(std::ceil(
+                               risk_score_tail_fraction_ * static_cast<double>(values.size()))));
+                    const size_t count = std::min(values.size(), tail_count);
+                    const double sum = std::accumulate(values.begin(), values.begin() + count, 0.0);
+                    return sum / static_cast<double>(count);
+                };
+                auto segmentConsistencyRisk =
+                    [this](const Eigen::Vector3d& a, const Eigen::Vector3d& b) {
+                    if (!guide_consistency_score_enabled_) {
+                        return 0.0;
+                    }
+                    const Eigen::Vector3d delta = b - a;
+                    const double length = delta.norm();
+                    if (length < 1e-3) {
+                        return 0.0;
+                    }
+                    const int samples = std::max(
+                        1, static_cast<int>(std::ceil(length / guide_consistency_check_resolution_)));
+                    int blocked = 0;
+                    for (int s = 0; s <= samples; ++s) {
+                        const double alpha = static_cast<double>(s) / static_cast<double>(samples);
+                        const Eigen::Vector3d p = a * (1.0 - alpha) + b * alpha;
+                        if (!grid_map_->isInMap(p) || grid_map_->getInflateOccupancy(p)) {
+                            ++blocked;
+                        }
+                    }
+                    const double blocked_ratio =
+                        static_cast<double>(blocked) / static_cast<double>(samples + 1);
+                    const double link_excess =
+                        std::max(0.0, length - guide_consistency_max_link_dist_) /
+                        guide_consistency_max_link_dist_;
+                    return blocked_ratio + 0.25 * link_excess;
+                };
                 Eigen::Vector3d current_vel = start_vel;
                 Eigen::Vector3d target_vel = local_target_vel;
                 
@@ -1556,6 +1846,10 @@ namespace ego_planner
                     mppi_candidates[i].min_dynamic_dist = 0.0;
                     mppi_candidates[i].topo_min_clearance = 0.0;
                     mppi_candidates[i].topo_min_dynamic_dist = 0.0;
+                    mppi_candidates[i].static_tail_risk = 0.0;
+                    mppi_candidates[i].dynamic_tail_risk = 0.0;
+                    mppi_candidates[i].guide_consistency_risk = 0.0;
+                    mppi_candidates[i].risk_score = 0.0;
 
                     double topo_length = 0.0;
                     double topo_min_clearance = std::numeric_limits<double>::infinity();
@@ -1615,6 +1909,9 @@ namespace ego_planner
                         double path_length = 0.0;
                         double min_clearance = std::numeric_limits<double>::infinity();
                         double min_dynamic_dist = std::numeric_limits<double>::infinity();
+                        std::vector<double> static_risk_samples;
+                        std::vector<double> dynamic_risk_samples;
+                        std::vector<double> guide_consistency_samples;
                         for (size_t j = 1; j < mppi_candidates[i].mppi_result.positions.size(); ++j) {
                             path_length += (mppi_candidates[i].mppi_result.positions[j] - mppi_candidates[i].mppi_result.positions[j-1]).norm();
                         }
@@ -1623,18 +1920,61 @@ namespace ego_planner
                                              mppi_candidates[i].mppi_result.positions.size() - 1);
                         for (size_t j = safety_check_start_idx; j < mppi_candidates[i].mppi_result.positions.size(); ++j) {
                             const Eigen::Vector3d& pos_j = mppi_candidates[i].mppi_result.positions[j];
+                            double clearance_j = 0.0;
                             if (grid_map_->isInMap(pos_j) && !grid_map_->getInflateOccupancy(pos_j)) {
                                 const double dist = grid_map_->getDistance(pos_j);
-                                min_clearance = std::min(min_clearance, std::max(0.0, std::min(5.0, dist)));
+                                clearance_j = std::max(0.0, std::min(5.0, dist));
+                                min_clearance = std::min(min_clearance, clearance_j);
                             } else {
+                                clearance_j = 0.0;
                                 min_clearance = std::min(min_clearance, 0.0);
                             }
+                            const double static_deficit =
+                                std::max(0.0, risk_score_static_margin_ - clearance_j);
+                            static_risk_samples.push_back(static_deficit * static_deficit);
+
                             const double dyn_dist =
                                 queryDynamicSurfaceDistance(
                                     pos_j,
                                     dynamic_safety_time_buffer_ + 0.1 * static_cast<double>(j));
-                            min_dynamic_dist = std::min(min_dynamic_dist, std::max(0.0, std::min(5.0, dyn_dist)));
+                            const double dyn_clearance_j = std::max(0.0, std::min(5.0, dyn_dist));
+                            min_dynamic_dist = std::min(min_dynamic_dist, dyn_clearance_j);
+                            const double dynamic_deficit =
+                                std::max(0.0, risk_score_dynamic_margin_ - dyn_clearance_j);
+                            dynamic_risk_samples.push_back(dynamic_deficit * dynamic_deficit);
                         }
+                        if (!std::isfinite(min_clearance)) min_clearance = 0.0;
+                        if (!std::isfinite(min_dynamic_dist)) min_dynamic_dist = 5.0;
+
+                        const double static_tail_risk = tailMean(static_risk_samples);
+                        const double dynamic_tail_risk = tailMean(dynamic_risk_samples);
+                        double guide_consistency_risk = 0.0;
+                        if (guide_consistency_score_enabled_ && !dense_paths[i].empty()) {
+                            for (size_t j = safety_check_start_idx;
+                                 j < mppi_candidates[i].mppi_result.positions.size();
+                                 j += static_cast<size_t>(guide_consistency_stride_)) {
+                                const Eigen::Vector3d& exec_pos =
+                                    mppi_candidates[i].mppi_result.positions[j];
+                                double nearest_sq = std::numeric_limits<double>::infinity();
+                                Eigen::Vector3d nearest_guide = dense_paths[i].front();
+                                for (const auto& guide_pos : dense_paths[i]) {
+                                    const double dist_sq = (guide_pos - exec_pos).squaredNorm();
+                                    if (dist_sq < nearest_sq) {
+                                        nearest_sq = dist_sq;
+                                        nearest_guide = guide_pos;
+                                    }
+                                }
+                                guide_consistency_samples.push_back(
+                                    segmentConsistencyRisk(exec_pos, nearest_guide));
+                            }
+                            guide_consistency_risk = tailMean(guide_consistency_samples);
+                        }
+                        const double weighted_risk_score =
+                            risk_score_enabled_
+                                ? (risk_score_static_weight_ * static_tail_risk +
+                                   risk_score_dynamic_weight_ * dynamic_tail_risk +
+                                   guide_consistency_weight_ * guide_consistency_risk)
+                                : 0.0;
                         // When close to goal (<5m), path_length is short and MPPI fixed horizon
                         // causes inflated cost/length. Use raw cost for fairer comparison.
                         double dist_to_goal = (local_target_pt - start_pt).norm();
@@ -1692,7 +2032,8 @@ namespace ego_planner
                             path_length_penalty +
                             overshoot_penalty +
                             clearance_penalty +
-                            dynamic_penalty;
+                            dynamic_penalty +
+                            weighted_risk_score;
                         const double dynamic_path_discipline_score =
                             mppi_candidates[i].normalized_cost +
                             progress_penalty +
@@ -1703,9 +2044,11 @@ namespace ego_planner
                             mppi_candidates[i].dynamic_scene_score =
                                 dynamic_path_discipline_score +
                                 clearance_penalty +
-                                dynamic_penalty;
+                                dynamic_penalty +
+                                weighted_risk_score;
                         } else {
-                            mppi_candidates[i].dynamic_scene_score = mppi_candidates[i].normalized_cost;
+                            mppi_candidates[i].dynamic_scene_score =
+                                mppi_candidates[i].normalized_cost + weighted_risk_score;
                         }
                         mppi_candidates[i].path_length = path_length;
                         mppi_candidates[i].final_goal_dist = final_goal_dist;
@@ -1715,12 +2058,17 @@ namespace ego_planner
                         mppi_candidates[i].early_progress_ratio = early_progress_ratio;
                         mppi_candidates[i].min_clearance = min_clearance;
                         mppi_candidates[i].min_dynamic_dist = min_dynamic_dist;
+                        mppi_candidates[i].static_tail_risk = static_tail_risk;
+                        mppi_candidates[i].dynamic_tail_risk = dynamic_tail_risk;
+                        mppi_candidates[i].guide_consistency_risk = guide_consistency_risk;
+                        mppi_candidates[i].risk_score = weighted_risk_score;
                         mppi_candidates[i].success = true;
                         timing.mppi_successes++;
-                        
-                        ROS_INFO("[PlannerManager]   Path %zu: MPPI cost=%.3f, norm_cost=%.3f, select_score=%.3f, dyn_score=%.3f, length=%.2fm, final_goal=%.2fm, progress=%.2f, early=%.2f, overshoot=%.2f, dir=%.2f, clear=%.2fm, dyn=%.2fm, topo_clear=%.2fm, topo_dyn=%.2fm, points=%zu", 
+
+                        ROS_INFO("[PlannerManager]   Path %zu: MPPI cost=%.3f, norm_cost=%.3f, select_score=%.3f, dyn_score=%.3f, risk=%.3f(g=%.3f), length=%.2fm, final_goal=%.2fm, progress=%.2f, early=%.2f, overshoot=%.2f, dir=%.2f, clear=%.2fm, dyn=%.2fm, topo_clear=%.2fm, topo_dyn=%.2fm, points=%zu",
                                  i+1, mppi_candidates[i].mppi_result.cost, mppi_candidates[i].normalized_cost,
                                  mppi_candidates[i].selection_score, mppi_candidates[i].dynamic_scene_score,
+                                 weighted_risk_score, guide_consistency_risk,
                                  path_length, final_goal_dist, progress_ratio, early_progress_ratio,
                                  max_goal_overshoot, direction_cos,
                                  min_clearance, min_dynamic_dist,
@@ -1838,6 +2186,71 @@ namespace ego_planner
                         std::max(final_static_min_clearance_, static_scene_unsafe_clearance_);
                     const double static_preferred_clearance =
                         std::max(static_scene_preferred_clearance_, static_hard_clearance);
+                    if (static_scene_safety_gate_enabled_ &&
+                        static_scene_clearance_first_enabled_ &&
+                        best_idx >= 0) {
+                        const auto& best_candidate = mppi_candidates[best_idx];
+                        const double allowed_score =
+                            best_candidate.selection_score +
+                            std::max(static_scene_safe_score_slack_,
+                                     static_scene_clearance_first_score_slack_);
+                        const double min_required_clearance =
+                            std::min(static_preferred_clearance,
+                                     best_candidate.min_clearance +
+                                         static_scene_clearance_first_min_improvement_);
+                        int clearance_first_idx = -1;
+                        double clearance_first_score = std::numeric_limits<double>::max();
+
+                        for (size_t i = 0; i < mppi_candidates.size(); ++i) {
+                            const auto& candidate = mppi_candidates[i];
+                            if (!candidate.success) continue;
+                            if (candidate.selection_score > allowed_score) continue;
+                            if (candidate.min_clearance < min_required_clearance) continue;
+                            if (candidate.progress_ratio + static_scene_clearance_first_progress_margin_ <
+                                best_candidate.progress_ratio) continue;
+                            if (candidate.early_progress_ratio + static_scene_clearance_first_progress_margin_ <
+                                best_candidate.early_progress_ratio) continue;
+                            if (candidate.final_goal_dist >
+                                best_candidate.final_goal_dist + static_scene_clearance_first_goal_margin_) continue;
+                            if (candidate.direction_cos + 0.12 < best_candidate.direction_cos) continue;
+                            if (candidate.max_goal_overshoot > best_candidate.max_goal_overshoot + 0.45) continue;
+                            if (candidate.path_length > best_candidate.path_length + 3.5) continue;
+
+                            const double clamped_clearance =
+                                std::min(static_preferred_clearance, candidate.min_clearance);
+                            const double clamped_topo_clearance =
+                                std::min(static_preferred_clearance,
+                                         std::max(0.0, candidate.topo_min_clearance));
+                            const double guarded_score =
+                                candidate.selection_score -
+                                static_scene_clearance_first_reward_ * clamped_clearance -
+                                static_scene_clearance_first_topo_reward_ * clamped_topo_clearance;
+                            if (guarded_score < clearance_first_score) {
+                                clearance_first_score = guarded_score;
+                                clearance_first_idx = static_cast<int>(i);
+                            }
+                        }
+
+                        if (clearance_first_idx >= 0 && clearance_first_idx != best_idx) {
+                            ROS_INFO("[PlannerManager] Static clearance-first: replacing Path #%d (score=%.3f, clear=%.2fm, topo_clear=%.2fm, progress=%.2f, goal=%.2fm) with Path #%d (score=%.3f, guarded=%.3f, clear=%.2fm, topo_clear=%.2fm, progress=%.2f, goal=%.2fm)",
+                                     best_idx + 1,
+                                     best_candidate.selection_score,
+                                     best_candidate.min_clearance,
+                                     best_candidate.topo_min_clearance,
+                                     best_candidate.progress_ratio,
+                                     best_candidate.final_goal_dist,
+                                     clearance_first_idx + 1,
+                                     mppi_candidates[clearance_first_idx].selection_score,
+                                     clearance_first_score,
+                                     mppi_candidates[clearance_first_idx].min_clearance,
+                                     mppi_candidates[clearance_first_idx].topo_min_clearance,
+                                     mppi_candidates[clearance_first_idx].progress_ratio,
+                                     mppi_candidates[clearance_first_idx].final_goal_dist);
+                            best_idx = clearance_first_idx;
+                            best_score = mppi_candidates[clearance_first_idx].selection_score;
+                        }
+                    }
+
                     if (static_scene_safety_gate_enabled_ &&
                         best_idx >= 0 &&
                         mppi_candidates[best_idx].min_clearance < static_hard_clearance) {
@@ -1972,7 +2385,8 @@ namespace ego_planner
 	                    if (static_scene_safety_gate_enabled_ &&
 	                        best_idx >= 0 &&
 	                        mppi_candidates[best_idx].min_clearance < static_hard_clearance &&
-	                        (continous_failures_count_ >= 2 ||
+	                        (continous_failures_count_ >=
+	                             static_scene_topo_safe_switch_after_failures_ ||
 	                         bspline_consecutive_failures_ >= 1)) {
 	                        int topo_safe_idx = -1;
 	                        double topo_safe_score = std::numeric_limits<double>::max();
@@ -1993,16 +2407,108 @@ namespace ego_planner
 	                                topo_safe_idx = static_cast<int>(i);
 	                            }
 	                        }
-	                        if (topo_safe_idx >= 0 && topo_safe_idx != best_idx) {
-	                            ROS_WARN("[PlannerManager] Static MPPI candidates unsafe; switching executable seed to topo-safe Path #%d (mppi_clear=%.2fm, topo_clear=%.2fm)",
-	                                     topo_safe_idx + 1,
-	                                     mppi_candidates[topo_safe_idx].min_clearance,
-	                                     mppi_candidates[topo_safe_idx].topo_min_clearance);
-	                            best_idx = topo_safe_idx;
-	                            best_score = mppi_candidates[topo_safe_idx].selection_score;
-	                        }
-	                    }
-	                }
+		                        if (topo_safe_idx >= 0 && topo_safe_idx != best_idx) {
+		                            ROS_WARN("[PlannerManager] Static MPPI candidates unsafe; switching executable seed to topo-safe Path #%d (mppi_clear=%.2fm, topo_clear=%.2fm)",
+		                                     topo_safe_idx + 1,
+		                                     mppi_candidates[topo_safe_idx].min_clearance,
+		                                     mppi_candidates[topo_safe_idx].topo_min_clearance);
+		                            best_idx = topo_safe_idx;
+		                            best_score = mppi_candidates[topo_safe_idx].selection_score;
+		                        }
+		                    }
+		                }
+
+                if (publishable_candidate_precheck_enabled_ && best_idx >= 0) {
+                    const double static_hard_clearance =
+                        std::max(final_static_min_clearance_, static_scene_unsafe_clearance_);
+                    const double precheck_static_fraction =
+                        dynamic_scene_active ? final_dynamic_static_check_fraction_ : 2.0 / 3.0;
+                    const double precheck_static_time =
+                        dynamic_scene_active ? final_dynamic_static_check_time_ : std::numeric_limits<double>::infinity();
+                    const double precheck_dynamic_skip =
+                        dynamic_scene_active ? dynamic_escape_start_skip_time_ : 0.0;
+                    const double dynamic_publish_min =
+                        dynamic_scene_active ? dynamic_publish_preferred_distance_ : final_dynamic_min_distance_;
+                    const double allowed_score =
+                        best_score + publishable_candidate_score_slack_;
+                    const auto &current_best = mppi_candidates[best_idx];
+
+                    int publishable_idx = -1;
+                    double publishable_score = std::numeric_limits<double>::max();
+                    double publishable_clearance = 0.0;
+                    double publishable_dynamic_dist = 0.0;
+                    bool publishable_uses_topo_seed = false;
+
+                    for (size_t i = 0; i < mppi_candidates.size(); ++i) {
+                        const auto &candidate = mppi_candidates[i];
+                        if (!candidate.success) continue;
+                        const double candidate_score =
+                            dynamic_scene_active ? candidate.dynamic_scene_score : candidate.selection_score;
+                        if (candidate_score > allowed_score) continue;
+                        if (candidate.progress_ratio + 0.12 < current_best.progress_ratio) continue;
+                        if (candidate.early_progress_ratio + 0.10 < current_best.early_progress_ratio) continue;
+                        if (candidate.final_goal_dist > current_best.final_goal_dist + 1.0) continue;
+                        if (candidate.direction_cos + 0.12 < current_best.direction_cos) continue;
+                        if (candidate.max_goal_overshoot > current_best.max_goal_overshoot + 0.45) continue;
+
+                        bool use_topo_seed = false;
+                        std::vector<Eigen::Vector3d> seed_path = candidate.mppi_result.positions;
+                        if (!dynamic_scene_active &&
+                            candidate.min_clearance < static_hard_clearance &&
+                            candidate.topo_min_clearance >= static_hard_clearance &&
+                            candidate.topo_path.path.size() >= 2) {
+                            seed_path = candidate.topo_path.path;
+                            use_topo_seed = true;
+                        }
+                        if (seed_path.size() < 4 && !use_topo_seed) continue;
+                        if (seed_path.size() < 2) continue;
+
+                        UniformBspline seed_traj;
+                        double seed_clearance = 0.0;
+                        double seed_dynamic_dist = 0.0;
+                        if (!buildSafeSeedBspline(seed_path, start_end_derivatives, ts,
+                                                  seed_traj,
+                                                  precheck_static_fraction,
+                                                  precheck_static_time,
+                                                  final_static_check_start_skip_,
+                                                  precheck_dynamic_skip,
+                                                  &seed_clearance,
+                                                  &seed_dynamic_dist)) {
+                            continue;
+                        }
+                        if (dynamic_scene_active && seed_dynamic_dist < dynamic_publish_min) {
+                            continue;
+                        }
+
+                        const double clearance_reward =
+                            publishable_candidate_clearance_reward_ *
+                            std::min(static_scene_preferred_clearance_, std::max(0.0, seed_clearance));
+                        const double guarded_score = candidate_score - clearance_reward;
+                        if (guarded_score < publishable_score) {
+                            publishable_score = guarded_score;
+                            publishable_idx = static_cast<int>(i);
+                            publishable_clearance = seed_clearance;
+                            publishable_dynamic_dist = seed_dynamic_dist;
+                            publishable_uses_topo_seed = use_topo_seed;
+                        }
+                    }
+
+                    if (publishable_idx >= 0 && publishable_idx != best_idx) {
+                        ROS_WARN("[PlannerManager] Publishable candidate precheck: replacing Path #%d (score=%.3f, clear=%.2fm, dyn=%.2fm) with Path #%d (guarded=%.3f, clear=%.2fm, dyn=%.2fm, seed=%s)",
+                                 best_idx + 1,
+                                 dynamic_scene_active ? current_best.dynamic_scene_score : current_best.selection_score,
+                                 current_best.min_clearance,
+                                 current_best.min_dynamic_dist,
+                                 publishable_idx + 1,
+                                 publishable_score,
+                                 publishable_clearance,
+                                 publishable_dynamic_dist,
+                                 publishable_uses_topo_seed ? "topo" : "mppi");
+                        best_idx = publishable_idx;
+                        best_score = dynamic_scene_active ? mppi_candidates[publishable_idx].dynamic_scene_score
+                                                          : mppi_candidates[publishable_idx].selection_score;
+                    }
+                }
 
                 if (candidate_quality_log_enabled_ && !candidate_quality_log_path_.empty()) {
                     const bool file_exists = [] (const std::string& path) {
@@ -2019,7 +2525,9 @@ namespace ego_planner
                             candidate_log
                                 << "stamp,cycle,dynamic_scene,candidate_idx,selected,success,"
                                 << "reject_reason,raw_cost,normalized_cost,selection_score,"
-                                << "dynamic_scene_score,best_score,path_length,topo_length,"
+                                << "dynamic_scene_score,risk_score,static_tail_risk,"
+                                << "dynamic_tail_risk,guide_consistency_risk,best_score,"
+                                << "path_length,topo_length,"
                                 << "final_goal_dist,progress_ratio,early_progress_ratio,"
                                 << "direction_cos,max_goal_overshoot,min_static_clearance,"
                                 << "min_dynamic_clearance,topo_min_static_clearance,"
@@ -2055,6 +2563,10 @@ namespace ego_planner
                                           << candidate.normalized_cost << ','
                                           << candidate.selection_score << ','
                                           << candidate.dynamic_scene_score << ','
+                                          << candidate.risk_score << ','
+                                          << candidate.static_tail_risk << ','
+                                          << candidate.dynamic_tail_risk << ','
+                                          << candidate.guide_consistency_risk << ','
                                           << best_score << ','
                                           << candidate.path_length << ','
                                           << candidate.topo_length << ','
@@ -2397,7 +2909,7 @@ namespace ego_planner
 	          has_dynamic_obstacles_ && !latest_dynamic_obstacles_.obstacles.empty();
 	    }
 	    if (planar_flight_z_lock_ &&
-	        !planar_lock_dynamic_scene_active &&
+	        (planar_flight_z_lock_dynamic_ || !planar_lock_dynamic_scene_active) &&
 	        use_mppi_topo_path &&
 	        point_set.size() >= 2 &&
 	        start_pt.z() >= publish_min_z_ &&
@@ -2602,6 +3114,11 @@ namespace ego_planner
       // Decay the counter so we periodically retry B-spline
       bspline_consecutive_failures_ = std::max(0, bspline_consecutive_failures_ - 1);
     } else {
+      if (!step3_dynamic_scene_active &&
+          repairBsplineControlPointsByClearance(ctrl_pts)) {
+        ROS_INFO("[PlannerManager]   B-spline control points repaired before rebound/precheck");
+      }
+
       bool early_control_points_blocked = false;
       if (grid_map_ != nullptr && ctrl_pts.cols() >= 4) {
         const int check_cols = std::min<int>(4, ctrl_pts.cols() - 1);
@@ -2626,7 +3143,7 @@ namespace ego_planner
           flag_step_1_success = false;
         }
       } else {
-        // Normal B-spline optimization.
+        // Normal inherited B-spline optimization from the stable rebound seed.
         flag_step_1_success = bspline_optimizer_rebound_->BsplineOptimizeTrajRebound(ctrl_pts, ts);
       }
     }
@@ -2706,7 +3223,20 @@ namespace ego_planner
     timing.used_mppi_fallback = used_mppi_fallback;
 
     // save planned results
-    if (final_fallback_feasibility_repair_ && used_mppi_fallback) {
+    if ((final_fallback_feasibility_repair_ || final_fallback_soft_feasibility_repair_) &&
+        used_mppi_fallback) {
+      auto reject_or_continue_after_soft_repair =
+          [&](const std::string &reason, const std::string &message) -> bool {
+            if (final_fallback_soft_feasibility_repair_ &&
+                !final_fallback_feasibility_repair_) {
+              ROS_WARN("[PlannerManager] %s; soft fallback repair keeps original trajectory for final validators",
+                       message.c_str());
+              return false;
+            }
+            ROS_WARN("[PlannerManager] %s", message.c_str());
+            continous_failures_count_++;
+            return true;
+          };
       auto capped_vector = [](const Eigen::Vector3d &v, double max_norm) -> Eigen::Vector3d {
         if (!std::isfinite(max_norm) || max_norm <= 1e-6 || v.norm() <= max_norm) {
           return v;
@@ -2814,15 +3344,21 @@ namespace ego_planner
                 // Relaxed endpoint derivatives reduce infeasible spikes from
                 // repeatedly reparameterizing short MPPI fallback snippets.
               } else {
-                ROS_WARN("[PlannerManager] Final MPPI fallback remains dynamically infeasible after stretch (ratio=%.2f)",
-                         raw_stretched_ratio);
-                continous_failures_count_++;
-                return finish_cycle(false, "fallback_final_feasibility_reject");
+                char msg[256];
+                std::snprintf(msg, sizeof(msg),
+                              "Final MPPI fallback remains dynamically infeasible after stretch (ratio=%.2f)",
+                              raw_stretched_ratio);
+                if (reject_or_continue_after_soft_repair(
+                        "fallback_final_feasibility_reject", msg)) {
+                  return finish_cycle(false, "fallback_final_feasibility_reject");
+                }
               }
             } else {
-              ROS_WARN("[PlannerManager] Final MPPI fallback infeasible and no raw backup is available for repair");
-              continous_failures_count_++;
-              return finish_cycle(false, "fallback_final_feasibility_reject");
+              if (reject_or_continue_after_soft_repair(
+                      "fallback_final_feasibility_reject",
+                      "Final MPPI fallback infeasible and no raw backup is available for repair")) {
+                return finish_cycle(false, "fallback_final_feasibility_reject");
+              }
             }
           }
         } else {
@@ -2832,10 +3368,14 @@ namespace ego_planner
           if (try_relaxed_fallback_reparameterization(relaxed_ts, pos, ts, ctrl_pts)) {
             // Keep final validators below in charge of static/dynamic safety.
           } else {
-            ROS_WARN("[PlannerManager] Final MPPI fallback infeasible and cannot be stretched safely (ratio=%.2f limit=%.2f)",
-                     final_feasibility_ratio, stretch_limit);
-            continous_failures_count_++;
-            return finish_cycle(false, "fallback_final_feasibility_reject");
+            char msg[256];
+            std::snprintf(msg, sizeof(msg),
+                          "Final MPPI fallback infeasible and cannot be stretched safely (ratio=%.2f limit=%.2f)",
+                          final_feasibility_ratio, stretch_limit);
+            if (reject_or_continue_after_soft_repair(
+                    "fallback_final_feasibility_reject", msg)) {
+              return finish_cycle(false, "fallback_final_feasibility_reject");
+            }
           }
         }
       }
@@ -2957,7 +3497,93 @@ namespace ego_planner
     if (!final_static_ok) {
       ROS_WARN("[PlannerManager] Final B-spline rejected by static safety check (min_clearance=%.2fm)",
                final_min_clearance);
+      if (!final_dynamic_scene_active && bspline_control_point_repair_enabled_) {
+        Eigen::MatrixXd repaired_ctrl_pts = pos.getControlPoint();
+        if (repairBsplineControlPointsByClearance(repaired_ctrl_pts)) {
+          UniformBspline repaired_pos(repaired_ctrl_pts, 3, ts);
+          repaired_pos.setPhysicalLimits(pp_.max_vel_, pp_.max_acc_,
+                                         pp_.feasibility_tolerance_);
+          double repaired_min_clearance = 0.0;
+          double repaired_min_dynamic_dist = 0.0;
+          const bool repaired_static_ok =
+              isBsplineCollisionFree(repaired_pos, final_static_min_clearance_,
+                                     &repaired_min_clearance,
+                                     final_static_check_fraction,
+                                     final_static_check_time,
+                                     final_static_check_start_skip_);
+          const bool repaired_dynamic_ok =
+              isBsplineDynamicSafe(repaired_pos, final_dynamic_min_distance_,
+                                   &repaired_min_dynamic_dist);
+          if (repaired_static_ok &&
+              repaired_dynamic_ok &&
+              trajectoryMakesLocalProgress(repaired_pos, 0.8,
+                                           "Control-point repaired B-spline") &&
+              trajectoryDynamicallyFeasibleForPublish(
+                  repaired_pos, "Control-point repaired B-spline")) {
+            ROS_WARN("[PlannerManager] Publishing control-point repaired B-spline after static rejection (clear=%.2fm, dyn=%.2fm)",
+                     repaired_min_clearance, repaired_min_dynamic_dist);
+            last_traj_is_recovery_ = false;
+            updateTrajInfo(repaired_pos, ros::Time::now());
+            commitPublishedTopoCache(local_target_pt, topo_paths_for_success_cache);
+            continous_failures_count_ = 0;
+            bspline_consecutive_failures_ = 0;
+            timing.final_static_clearance = repaired_min_clearance;
+            timing.final_dynamic_clearance = repaired_min_dynamic_dist;
+            return finish_cycle(true, "control_point_repair_after_static_reject");
+          }
+          ROS_INFO("[PlannerManager] Control-point repair after static rejection insufficient (static=%d clear=%.2fm dynamic=%d dyn=%.2fm)",
+                   repaired_static_ok, repaired_min_clearance,
+                   repaired_dynamic_ok, repaired_min_dynamic_dist);
+        }
+      }
       if (mppi_result_backup_.positions.size() >= 4) {
+        if (short_horizon_fallback_enabled_ && !final_dynamic_scene_active &&
+            mppi_planner_ != nullptr) {
+          const double mppi_dt = std::max(0.03, mppi_planner_->getTimeStep());
+          const size_t desired_points = static_cast<size_t>(
+              std::ceil(short_horizon_fallback_time_ / mppi_dt)) + 1;
+          const size_t keep_points = std::min(
+              mppi_result_backup_.positions.size(),
+              std::max(static_cast<size_t>(short_horizon_fallback_min_points_),
+                       desired_points));
+          if (keep_points >= 4 &&
+              keep_points < mppi_result_backup_.positions.size()) {
+            std::vector<Eigen::Vector3d> short_seed(
+                mppi_result_backup_.positions.begin(),
+                mppi_result_backup_.positions.begin() + keep_points);
+            UniformBspline short_seed_traj;
+            double short_min_clearance = 0.0;
+            double short_min_dynamic_dist = 0.0;
+            if (buildSafeSeedBspline(short_seed, start_end_derivatives, ts,
+                                     short_seed_traj,
+                                     final_static_check_fraction,
+                                     final_static_check_time,
+                                     final_static_check_start_skip_,
+                                     0.0,
+                                     &short_min_clearance,
+                                     &short_min_dynamic_dist) &&
+                trajectoryMakesLocalProgress(short_seed_traj, 0.45,
+                                             "Short-horizon seed after static rejection") &&
+                trajectoryDynamicallyFeasibleForPublish(
+                    short_seed_traj,
+                    "Short-horizon seed after static rejection")) {
+              ROS_WARN("[PlannerManager] Publishing short-horizon MPPI seed after static rejection (points=%zu, clear=%.2fm, dyn=%.2fm)",
+                       short_seed.size(), short_min_clearance,
+                       short_min_dynamic_dist);
+              last_traj_is_recovery_ = false;
+              updateTrajInfo(short_seed_traj, ros::Time::now());
+              commitPublishedTopoCache(local_target_pt, topo_paths_for_success_cache);
+              continous_failures_count_ = 0;
+              bspline_consecutive_failures_ = 0;
+              timing.final_static_clearance = short_min_clearance;
+              timing.final_dynamic_clearance = short_min_dynamic_dist;
+              return finish_cycle(true, "short_seed_after_static_reject");
+            }
+            ROS_INFO("[PlannerManager] Short-horizon seed fallback unavailable after static rejection (points=%zu)",
+                     short_seed.size());
+          }
+        }
+
         UniformBspline direct_seed_traj;
         double direct_min_clearance = 0.0;
         double direct_min_dynamic_dist = 0.0;
@@ -3405,6 +4031,22 @@ namespace ego_planner
 	      return false;
 	    }
 
+    const auto point_is_cache_usable = [&](const Eigen::Vector3d &p) {
+      if (grid_map_ == nullptr) {
+        return false;
+      }
+      if (!grid_map_->isInMap(p)) {
+        return false;
+      }
+      if (!cached_topo_allow_near_obstacle_) {
+        return !grid_map_->getInflateOccupancy(p);
+      }
+      if (grid_map_->getOccupancy(p) == 1) {
+        return false;
+      }
+      return grid_map_->getDistance(p) >= cached_topo_min_raw_clearance_;
+    };
+
     const auto segment_is_free = [&](const Eigen::Vector3d &a, const Eigen::Vector3d &b) {
       if (grid_map_ == nullptr) {
         return false;
@@ -3415,7 +4057,7 @@ namespace ego_planner
       for (int i = 0; i <= samples; ++i) {
         const double alpha = static_cast<double>(i) / static_cast<double>(samples);
         const Eigen::Vector3d p = a * (1.0 - alpha) + b * alpha;
-        if (!grid_map_->isInMap(p) || grid_map_->getInflateOccupancy(p)) {
+        if (!point_is_cache_usable(p)) {
           return false;
         }
       }
@@ -3496,6 +4138,22 @@ namespace ego_planner
     cached_topo_paths_.reserve(std::min(topo_paths.size(),
                                         static_cast<size_t>(max_mppi_topo_candidates_)));
 
+    const auto point_is_cache_usable = [&](const Eigen::Vector3d &p) {
+      if (grid_map_ == nullptr) {
+        return false;
+      }
+      if (!grid_map_->isInMap(p)) {
+        return false;
+      }
+      if (!cached_topo_allow_near_obstacle_) {
+        return !grid_map_->getInflateOccupancy(p);
+      }
+      if (grid_map_->getOccupancy(p) == 1) {
+        return false;
+      }
+      return grid_map_->getDistance(p) >= cached_topo_min_raw_clearance_;
+    };
+
     const auto segment_is_free = [&](const Eigen::Vector3d &a, const Eigen::Vector3d &b) {
       if (grid_map_ == nullptr) {
         return false;
@@ -3507,7 +4165,7 @@ namespace ego_planner
       for (int i = 0; i <= samples; ++i) {
         const double alpha = static_cast<double>(i) / static_cast<double>(samples);
         const Eigen::Vector3d p = a * (1.0 - alpha) + b * alpha;
-        if (!grid_map_->isInMap(p) || grid_map_->getInflateOccupancy(p)) {
+        if (!point_is_cache_usable(p)) {
           return false;
         }
       }

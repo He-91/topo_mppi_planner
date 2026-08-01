@@ -24,6 +24,17 @@
   <arg name="static_scene_min_clearance_improvement" default="0.08"/>
   <arg name="static_scene_preferred_clearance_gate_enabled" default="false"/>
   <arg name="static_scene_preferred_clearance_score_slack" default="80.0"/>
+  <arg name="static_scene_topo_safe_switch_after_failures" default="2"/>
+  <arg name="static_scene_clearance_first_enabled" default="false"/>
+  <arg name="static_scene_clearance_first_score_slack" default="240.0"/>
+  <arg name="static_scene_clearance_first_reward" default="220.0"/>
+  <arg name="static_scene_clearance_first_topo_reward" default="60.0"/>
+  <arg name="static_scene_clearance_first_min_improvement" default="0.08"/>
+  <arg name="static_scene_clearance_first_progress_margin" default="0.12"/>
+  <arg name="static_scene_clearance_first_goal_margin" default="1.00"/>
+  <arg name="publishable_candidate_precheck_enabled" default="false"/>
+  <arg name="publishable_candidate_score_slack" default="450.0"/>
+  <arg name="publishable_candidate_clearance_reward" default="120.0"/>
   <arg name="dynamic_scene_use_mode_score" default="false"/>
   <arg name="dynamic_scene_unsafe_clearance" default="0.15"/>
   <arg name="dynamic_scene_preferred_clearance" default="0.30"/>
@@ -38,6 +49,17 @@
   <arg name="mode_score_overshoot_weight" default="120.0"/>
   <arg name="mode_score_early_progress_weight" default="160.0"/>
   <arg name="mode_score_min_early_progress" default="0.05"/>
+  <arg name="risk_score_enabled" default="true"/>
+  <arg name="risk_score_tail_fraction" default="0.25"/>
+  <arg name="risk_score_static_margin" default="0.55"/>
+  <arg name="risk_score_static_weight" default="450.0"/>
+  <arg name="risk_score_dynamic_margin" default="0.80"/>
+  <arg name="risk_score_dynamic_weight" default="180.0"/>
+  <arg name="guide_consistency_score_enabled" default="true"/>
+  <arg name="guide_consistency_weight" default="160.0"/>
+  <arg name="guide_consistency_check_resolution" default="0.20"/>
+  <arg name="guide_consistency_stride" default="2"/>
+  <arg name="guide_consistency_max_link_dist" default="2.5"/>
   <arg name="mppi_seed_preserve_clearance" default="0.35"/>
   <arg name="safe_seed_time_stretch_max" default="2.6"/>
   <arg name="bspline_skip_threshold" default="1"/>
@@ -58,16 +80,26 @@
   <arg name="final_dynamic_static_check_time" default="1.2"/>
   <arg name="final_static_check_start_skip" default="0.25"/>
   <arg name="final_fallback_feasibility_repair" default="false"/>
+  <arg name="final_fallback_soft_feasibility_repair" default="false"/>
   <arg name="final_fallback_relaxed_derivative_repair" default="false"/>
   <arg name="final_fallback_relaxed_velocity_scale" default="0.6"/>
+  <arg name="short_horizon_fallback_enabled" default="false"/>
+  <arg name="short_horizon_fallback_time" default="1.2"/>
+  <arg name="short_horizon_fallback_min_points" default="8"/>
   <arg name="final_publish_feasibility_gate_enabled" default="false"/>
   <arg name="geometric_seed_repair_enabled" default="false"/>
   <arg name="geometric_seed_repair_clearance" default="0.25"/>
   <arg name="geometric_seed_repair_step" default="0.18"/>
   <arg name="geometric_seed_repair_iterations" default="3"/>
+  <arg name="bspline_control_point_repair_enabled" default="false"/>
+  <arg name="bspline_control_point_repair_clearance" default="0.22"/>
+  <arg name="bspline_control_point_repair_step" default="0.12"/>
+  <arg name="bspline_control_point_repair_iterations" default="2"/>
+  <arg name="bspline_control_point_repair_protect_cols" default="1"/>
   <arg name="final_dynamic_min_distance" default="0.65"/>
   <arg name="dynamic_publish_preferred_distance" default="0.65"/>
   <arg name="max_mppi_topo_candidates" default="4"/>
+  <arg name="topo_prefilter_length_weight" default="1.0"/>
   <arg name="topo_prefilter_clearance_weight" default="220.0"/>
   <arg name="topo_prefilter_dynamic_weight" default="80.0"/>
   <arg name="topo_prefilter_clearance_margin" default="0.30"/>
@@ -76,6 +108,8 @@
   <arg name="cached_topo_goal_reuse_max_dist" default="1.0"/>
   <arg name="cache_only_published_topo_paths" default="true"/>
   <arg name="prefer_cached_topo_paths" default="false"/>
+  <arg name="cached_topo_allow_near_obstacle" default="false"/>
+  <arg name="cached_topo_min_raw_clearance" default="0.0"/>
   <arg name="planning_timing_log_enabled" default="false"/>
   <arg name="planning_timing_log_path" default="/tmp/topo_mppi_planning_timing.csv"/>
   <arg name="candidate_quality_log_enabled" default="false"/>
@@ -84,12 +118,18 @@
   <arg name="topo_fallback_vertical_when_partial" default="false"/>
   <arg name="topo_fallback_center_vertical_when_partial" default="false"/>
   <arg name="topo_grid_seed_enabled" default="false"/>
+  <arg name="topo_max_raw_paths" default="300"/>
+  <arg name="topo_grid_fallback_on_empty" default="false"/>
+  <arg name="topo_strict_guard_visibility" default="false"/>
+  <arg name="topo_grid_seed_allow_near_obstacle" default="false"/>
   <arg name="topo_grid_seed_resolution" default="0.4"/>
   <arg name="topo_grid_seed_max_paths" default="4"/>
   <arg name="topo_grid_seed_lateral_scale" default="1.0"/>
   <arg name="topo_grid_seed_clearance" default="0.16"/>
   <arg name="topo_grid_seed_clearance_cost_weight" default="0.35"/>
   <arg name="topo_grid_seed_reuse_penalty" default="8.0"/>
+  <arg name="topo_grid_seed_shortcut_clearance" default="0.0"/>
+  <arg name="topo_shortcut_min_clearance" default="0.0"/>
   <arg name="topo_clearance_aware_selection" default="false"/>
   <arg name="topo_selection_smooth_weight" default="2.0"/>
   <arg name="topo_selection_obstacle_weight" default="5.0"/>
@@ -123,11 +163,14 @@
   <arg name="retreat_distance" default="3.0"/>
   <arg name="max_consecutive_retreats" default="3"/>
   <arg name="goal_reached_thresh" default="0.9"/>
+  <arg name="fsm_thresh_replan" default="1.5"/>
+  <arg name="fsm_thresh_no_replan" default="2.0"/>
   <arg name="dynamic_exec_safety_enabled" default="false"/>
   <arg name="dynamic_exec_safety_distance" default="0.30"/>
   <arg name="dynamic_exec_safety_horizon" default="1.0"/>
   <arg name="dynamic_exec_safety_step" default="0.05"/>
   <arg name="dynamic_exec_emergency_time" default="0.45"/>
+  <arg name="dynamic_exec_replan_cooldown" default="0.25"/>
 
   <!-- Z轴独立约束 (默认等于xy，保持向后兼容) -->
   <arg name="max_vel_z" default="$(arg max_vel)"/>
@@ -137,6 +180,7 @@
   <arg name="publish_z_margin" default="0.35"/>
   <arg name="recovery_min_z" default="1.0"/>
   <arg name="planar_flight_z_lock" default="false"/>
+  <arg name="planar_flight_z_lock_dynamic" default="false"/>
 
   <arg name="point_num"/>
   <arg name="point0_x"/>
@@ -167,8 +211,8 @@
 
     <!-- planning fsm -->
     <param name="fsm/flight_type" value="$(arg flight_type)" type="int"/>
-    <param name="fsm/thresh_replan" value="1.5" type="double"/>
-    <param name="fsm/thresh_no_replan" value="2.0" type="double"/>
+    <param name="fsm/thresh_replan" value="$(arg fsm_thresh_replan)" type="double"/>
+    <param name="fsm/thresh_no_replan" value="$(arg fsm_thresh_no_replan)" type="double"/>
     <param name="fsm/planning_horizon" value="$(arg planning_horizon)" type="double"/> <!--always set to 1.5 times grater than sensing horizen-->
     <param name="fsm/planning_horizen_time" value="3" type="double"/>
     <param name="fsm/emergency_time_" value="1.0" type="double"/>
@@ -182,6 +226,7 @@
     <param name="fsm/dynamic_exec_safety_horizon" value="$(arg dynamic_exec_safety_horizon)" type="double"/>
     <param name="fsm/dynamic_exec_safety_step" value="$(arg dynamic_exec_safety_step)" type="double"/>
     <param name="fsm/dynamic_exec_emergency_time" value="$(arg dynamic_exec_emergency_time)" type="double"/>
+    <param name="fsm/dynamic_exec_replan_cooldown" value="$(arg dynamic_exec_replan_cooldown)" type="double"/>
 
     <!-- Z轴安全边界 -->
     <param name="fsm/min_z" value="$(arg min_z)" type="double"/>
@@ -251,6 +296,7 @@
     <param name="manager/max_vel_z" value="$(arg max_vel_z)" type="double"/>
     <param name="manager/max_acc_z" value="$(arg max_acc_z)" type="double"/>
     <param name="manager/planar_flight_z_lock" value="$(arg planar_flight_z_lock)" type="bool"/>
+    <param name="manager/planar_flight_z_lock_dynamic" value="$(arg planar_flight_z_lock_dynamic)" type="bool"/>
     <param name="manager/max_jerk" value="4" type="double"/>
     <param name="manager/control_points_distance" value="0.4" type="double"/>
     <param name="manager/feasibility_tolerance" value="0.05" type="double"/>
@@ -281,6 +327,17 @@
     <param name="manager/mode_score/static_scene_min_clearance_improvement" value="$(arg static_scene_min_clearance_improvement)" type="double"/>
     <param name="manager/mode_score/static_scene_preferred_clearance_gate_enabled" value="$(arg static_scene_preferred_clearance_gate_enabled)" type="bool"/>
     <param name="manager/mode_score/static_scene_preferred_clearance_score_slack" value="$(arg static_scene_preferred_clearance_score_slack)" type="double"/>
+    <param name="manager/mode_score/static_scene_topo_safe_switch_after_failures" value="$(arg static_scene_topo_safe_switch_after_failures)" type="int"/>
+    <param name="manager/mode_score/static_scene_clearance_first_enabled" value="$(arg static_scene_clearance_first_enabled)" type="bool"/>
+    <param name="manager/mode_score/static_scene_clearance_first_score_slack" value="$(arg static_scene_clearance_first_score_slack)" type="double"/>
+    <param name="manager/mode_score/static_scene_clearance_first_reward" value="$(arg static_scene_clearance_first_reward)" type="double"/>
+    <param name="manager/mode_score/static_scene_clearance_first_topo_reward" value="$(arg static_scene_clearance_first_topo_reward)" type="double"/>
+    <param name="manager/mode_score/static_scene_clearance_first_min_improvement" value="$(arg static_scene_clearance_first_min_improvement)" type="double"/>
+    <param name="manager/mode_score/static_scene_clearance_first_progress_margin" value="$(arg static_scene_clearance_first_progress_margin)" type="double"/>
+    <param name="manager/mode_score/static_scene_clearance_first_goal_margin" value="$(arg static_scene_clearance_first_goal_margin)" type="double"/>
+    <param name="manager/mode_score/publishable_candidate_precheck_enabled" value="$(arg publishable_candidate_precheck_enabled)" type="bool"/>
+    <param name="manager/mode_score/publishable_candidate_score_slack" value="$(arg publishable_candidate_score_slack)" type="double"/>
+    <param name="manager/mode_score/publishable_candidate_clearance_reward" value="$(arg publishable_candidate_clearance_reward)" type="double"/>
     <param name="manager/mode_score/reverse_progress_weight" value="350.0" type="double"/>
     <param name="manager/mode_score/weak_progress_weight" value="80.0" type="double"/>
     <param name="manager/mode_score/min_progress" value="$(arg mode_score_min_progress)" type="double"/>
@@ -291,6 +348,17 @@
     <param name="manager/mode_score/early_progress_weight" value="$(arg mode_score_early_progress_weight)" type="double"/>
     <param name="manager/mode_score/min_early_progress" value="$(arg mode_score_min_early_progress)" type="double"/>
     <param name="manager/mode_score/safety_skip_points" value="2" type="int"/>
+    <param name="manager/risk_score/enabled" value="$(arg risk_score_enabled)" type="bool"/>
+    <param name="manager/risk_score/tail_fraction" value="$(arg risk_score_tail_fraction)" type="double"/>
+    <param name="manager/risk_score/static_margin" value="$(arg risk_score_static_margin)" type="double"/>
+    <param name="manager/risk_score/static_weight" value="$(arg risk_score_static_weight)" type="double"/>
+    <param name="manager/risk_score/dynamic_margin" value="$(arg risk_score_dynamic_margin)" type="double"/>
+    <param name="manager/risk_score/dynamic_weight" value="$(arg risk_score_dynamic_weight)" type="double"/>
+    <param name="manager/guide_consistency_score/enabled" value="$(arg guide_consistency_score_enabled)" type="bool"/>
+    <param name="manager/guide_consistency_score/weight" value="$(arg guide_consistency_weight)" type="double"/>
+    <param name="manager/guide_consistency_score/check_resolution" value="$(arg guide_consistency_check_resolution)" type="double"/>
+    <param name="manager/guide_consistency_score/stride" value="$(arg guide_consistency_stride)" type="int"/>
+    <param name="manager/guide_consistency_score/max_link_dist" value="$(arg guide_consistency_max_link_dist)" type="double"/>
     <param name="manager/mppi_seed_preserve_clearance" value="$(arg mppi_seed_preserve_clearance)" type="double"/>
     <param name="manager/safe_seed_time_stretch_max" value="$(arg safe_seed_time_stretch_max)" type="double"/>
     <param name="manager/bspline_skip_threshold" value="$(arg bspline_skip_threshold)" type="int"/>
@@ -311,16 +379,26 @@
     <param name="manager/final_dynamic_static_check_time" value="$(arg final_dynamic_static_check_time)" type="double"/>
     <param name="manager/final_static_check_start_skip" value="$(arg final_static_check_start_skip)" type="double"/>
     <param name="manager/final_fallback_feasibility_repair" value="$(arg final_fallback_feasibility_repair)" type="bool"/>
+    <param name="manager/final_fallback_soft_feasibility_repair" value="$(arg final_fallback_soft_feasibility_repair)" type="bool"/>
     <param name="manager/final_fallback_relaxed_derivative_repair" value="$(arg final_fallback_relaxed_derivative_repair)" type="bool"/>
     <param name="manager/final_fallback_relaxed_velocity_scale" value="$(arg final_fallback_relaxed_velocity_scale)" type="double"/>
+    <param name="manager/short_horizon_fallback_enabled" value="$(arg short_horizon_fallback_enabled)" type="bool"/>
+    <param name="manager/short_horizon_fallback_time" value="$(arg short_horizon_fallback_time)" type="double"/>
+    <param name="manager/short_horizon_fallback_min_points" value="$(arg short_horizon_fallback_min_points)" type="int"/>
     <param name="manager/final_publish_feasibility_gate_enabled" value="$(arg final_publish_feasibility_gate_enabled)" type="bool"/>
     <param name="manager/geometric_seed_repair_enabled" value="$(arg geometric_seed_repair_enabled)" type="bool"/>
     <param name="manager/geometric_seed_repair_clearance" value="$(arg geometric_seed_repair_clearance)" type="double"/>
     <param name="manager/geometric_seed_repair_step" value="$(arg geometric_seed_repair_step)" type="double"/>
     <param name="manager/geometric_seed_repair_iterations" value="$(arg geometric_seed_repair_iterations)" type="int"/>
+    <param name="manager/bspline_control_point_repair_enabled" value="$(arg bspline_control_point_repair_enabled)" type="bool"/>
+    <param name="manager/bspline_control_point_repair_clearance" value="$(arg bspline_control_point_repair_clearance)" type="double"/>
+    <param name="manager/bspline_control_point_repair_step" value="$(arg bspline_control_point_repair_step)" type="double"/>
+    <param name="manager/bspline_control_point_repair_iterations" value="$(arg bspline_control_point_repair_iterations)" type="int"/>
+    <param name="manager/bspline_control_point_repair_protect_cols" value="$(arg bspline_control_point_repair_protect_cols)" type="int"/>
     <param name="manager/final_dynamic_min_distance" value="$(arg final_dynamic_min_distance)" type="double"/>
     <param name="manager/dynamic_publish_preferred_distance" value="$(arg dynamic_publish_preferred_distance)" type="double"/>
     <param name="manager/max_mppi_topo_candidates" value="$(arg max_mppi_topo_candidates)" type="int"/>
+    <param name="manager/topo_prefilter/length_weight" value="$(arg topo_prefilter_length_weight)" type="double"/>
     <param name="manager/topo_prefilter/clearance_weight" value="$(arg topo_prefilter_clearance_weight)" type="double"/>
     <param name="manager/topo_prefilter/dynamic_weight" value="$(arg topo_prefilter_dynamic_weight)" type="double"/>
     <param name="manager/topo_prefilter/clearance_margin" value="$(arg topo_prefilter_clearance_margin)" type="double"/>
@@ -329,6 +407,8 @@
     <param name="manager/cached_topo_goal_reuse_max_dist" value="$(arg cached_topo_goal_reuse_max_dist)" type="double"/>
     <param name="manager/cache_only_published_topo_paths" value="$(arg cache_only_published_topo_paths)" type="bool"/>
     <param name="manager/prefer_cached_topo_paths" value="$(arg prefer_cached_topo_paths)" type="bool"/>
+    <param name="manager/cached_topo_allow_near_obstacle" value="$(arg cached_topo_allow_near_obstacle)" type="bool"/>
+    <param name="manager/cached_topo_min_raw_clearance" value="$(arg cached_topo_min_raw_clearance)" type="double"/>
     <param name="manager/planning_timing_log_enabled" value="$(arg planning_timing_log_enabled)" type="bool"/>
     <param name="manager/planning_timing_log_path" value="$(arg planning_timing_log_path)" type="string"/>
     <param name="manager/candidate_quality_log_enabled" value="$(arg candidate_quality_log_enabled)" type="bool"/>
@@ -340,6 +420,7 @@
     <!-- Recommended: 3-5 for CPU, 5-10 for future GPU optimization -->
     <!-- Trade-off: More paths = better global optimality but longer computation -->
     <param name="topo_prm/max_topo_paths" value="5" type="int"/>
+    <param name="topo_prm/max_raw_paths" value="$(arg topo_max_raw_paths)" type="int"/>
     <param name="topo_prm/max_sample_time" value="0.006" type="double"/>
     <param name="topo_prm/clearance" value="0.28" type="double"/>
     <param name="topo_prm/sample_inflate_y" value="5.5" type="double"/>
@@ -356,12 +437,17 @@
     <param name="topo_prm/fallback_vertical_step" value="0.55" type="double"/>
     <param name="topo_prm/fallback_max_vertical_offset" value="1.65" type="double"/>
     <param name="topo_prm/grid_seed_enabled" value="$(arg topo_grid_seed_enabled)" type="bool"/>
+    <param name="topo_prm/grid_fallback_on_empty" value="$(arg topo_grid_fallback_on_empty)" type="bool"/>
+    <param name="topo_prm/strict_guard_visibility" value="$(arg topo_strict_guard_visibility)" type="bool"/>
+    <param name="topo_prm/grid_seed_allow_near_obstacle" value="$(arg topo_grid_seed_allow_near_obstacle)" type="bool"/>
     <param name="topo_prm/grid_seed_resolution" value="$(arg topo_grid_seed_resolution)" type="double"/>
     <param name="topo_prm/grid_seed_max_paths" value="$(arg topo_grid_seed_max_paths)" type="int"/>
     <param name="topo_prm/grid_seed_lateral_scale" value="$(arg topo_grid_seed_lateral_scale)" type="double"/>
     <param name="topo_prm/grid_seed_clearance" value="$(arg topo_grid_seed_clearance)" type="double"/>
     <param name="topo_prm/grid_seed_clearance_cost_weight" value="$(arg topo_grid_seed_clearance_cost_weight)" type="double"/>
     <param name="topo_prm/grid_seed_reuse_penalty" value="$(arg topo_grid_seed_reuse_penalty)" type="double"/>
+    <param name="topo_prm/grid_seed_shortcut_clearance" value="$(arg topo_grid_seed_shortcut_clearance)" type="double"/>
+    <param name="topo_prm/shortcut_min_clearance" value="$(arg topo_shortcut_min_clearance)" type="double"/>
     <param name="topo_prm/clearance_aware_selection" value="$(arg topo_clearance_aware_selection)" type="bool"/>
     <param name="topo_prm/selection_smooth_weight" value="$(arg topo_selection_smooth_weight)" type="double"/>
     <param name="topo_prm/selection_obstacle_weight" value="$(arg topo_selection_obstacle_weight)" type="double"/>

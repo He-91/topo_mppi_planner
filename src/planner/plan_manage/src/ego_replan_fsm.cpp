@@ -52,6 +52,7 @@ namespace ego_planner
     nh.param("fsm/dynamic_exec_safety_horizon", dynamic_exec_safety_horizon_, dynamic_exec_safety_horizon_);
     nh.param("fsm/dynamic_exec_safety_step", dynamic_exec_safety_step_, dynamic_exec_safety_step_);
     nh.param("fsm/dynamic_exec_emergency_time", dynamic_exec_emergency_time_, dynamic_exec_emergency_time_);
+    nh.param("fsm/dynamic_exec_replan_cooldown", dynamic_exec_replan_cooldown_, dynamic_exec_replan_cooldown_);
     nh.param("fsm/stuck_check_interval", stuck_check_interval_, stuck_check_interval_);
     nh.param("fsm/stuck_disp_threshold", stuck_disp_threshold_, stuck_disp_threshold_);
     nh.param("fsm/retreat_distance", retreat_distance_, retreat_distance_);
@@ -64,13 +65,16 @@ namespace ego_planner
     dynamic_exec_safety_horizon_ = std::max(0.1, dynamic_exec_safety_horizon_);
     dynamic_exec_safety_step_ = std::max(0.02, dynamic_exec_safety_step_);
     dynamic_exec_emergency_time_ = std::max(0.05, dynamic_exec_emergency_time_);
+    dynamic_exec_replan_cooldown_ = std::max(0.02, dynamic_exec_replan_cooldown_);
     last_dynamic_emergency_time_ = ros::Time(0);
+    last_dynamic_safety_replan_time_ = ros::Time(0);
     ROS_INFO("[FSM] Z-axis safety: min_z=%.2f, max_z=%.2f, max_vz=%.2f, recovery_grace=%.2fs",
              min_z_, max_z_, max_vz_, recovery_grace_time_);
-    ROS_INFO("[FSM] Dynamic execution safety: %s distance=%.2fm horizon=%.2fs step=%.2fs emergency_time=%.2fs",
+    ROS_INFO("[FSM] Dynamic execution safety: %s distance=%.2fm horizon=%.2fs step=%.2fs emergency_time=%.2fs cooldown=%.2fs",
              dynamic_exec_safety_enabled_ ? "ON" : "OFF",
              dynamic_exec_safety_distance_, dynamic_exec_safety_horizon_,
-             dynamic_exec_safety_step_, dynamic_exec_emergency_time_);
+             dynamic_exec_safety_step_, dynamic_exec_emergency_time_,
+             dynamic_exec_replan_cooldown_);
     ROS_INFO("[FSM] Stuck recovery: interval=%.1fs disp=%.2fm retreat=%.2fm max_retreats=%d",
              stuck_check_interval_, stuck_disp_threshold_, retreat_distance_, max_consecutive_retreats_);
 
@@ -675,8 +679,19 @@ namespace ego_planner
                           "[FSM] Dynamic execution safety risk: min_dyn=%.2fm at %.2fs < %.2fm",
                           min_dynamic_dist, min_dynamic_dt,
                           dynamic_exec_safety_distance_);
+        const ros::Time now = ros::Time::now();
+        const bool replan_cooldown_ok =
+            (now - last_dynamic_safety_replan_time_).toSec() >
+            dynamic_exec_replan_cooldown_;
+        if (replan_cooldown_ok) {
+          last_dynamic_safety_replan_time_ = now;
+          if (planFromCurrentTraj()) {
+            changeFSMExecState(EXEC_TRAJ, "DYNAMIC_SAFETY_REPLAN");
+            return;
+          }
+        }
+
         if (min_dynamic_dt < dynamic_exec_emergency_time_) {
-          const ros::Time now = ros::Time::now();
           if ((now - last_dynamic_emergency_time_).toSec() > 0.8) {
             last_dynamic_emergency_time_ = now;
             if (callEmergencyStop(odom_pos_)) {

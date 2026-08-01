@@ -29,12 +29,16 @@ struct TopoPath {
 
 //  NEW: Graph node for PRM-based topology planning (Fast-Planner style)
 struct GraphNode {
+    enum class Type { Guard, Connector };
+
     Eigen::Vector3d pos;
     int id;
+    Type type;
     std::vector<GraphNode*> neighbors;
     
-    GraphNode() : id(-1) {}
-    GraphNode(const Eigen::Vector3d& p, int node_id) : pos(p), id(node_id) {}
+    GraphNode() : id(-1), type(Type::Guard) {}
+    GraphNode(const Eigen::Vector3d& p, Type node_type, int node_id)
+        : pos(p), id(node_id), type(node_type) {}
 };
 
 class TopoPRM {
@@ -72,12 +76,17 @@ private:
     double fallback_vertical_step_;
     double fallback_max_vertical_offset_;
     bool grid_seed_enabled_;
+    bool grid_fallback_on_empty_;
+    bool grid_seed_allow_near_obstacle_;
     double grid_seed_resolution_;
     int grid_seed_max_paths_;
     double grid_seed_lateral_scale_;
     double grid_seed_clearance_;
     double grid_seed_clearance_cost_weight_;
     double grid_seed_reuse_penalty_;
+    double grid_seed_shortcut_clearance_;
+    double shortcut_min_clearance_;
+    bool strict_guard_visibility_;
     bool clearance_aware_selection_;
     double selection_smooth_weight_;
     double selection_obstacle_weight_;
@@ -107,6 +116,9 @@ private:
     // Shared utility functions
     bool isPathValid(const std::vector<Eigen::Vector3d>& path);
     bool isLineCollisionFree(const Eigen::Vector3d& start, const Eigen::Vector3d& end);
+    bool isLineClearanceFree(const Eigen::Vector3d& start,
+                             const Eigen::Vector3d& end,
+                             double min_clearance);
     bool isPointFree(const Eigen::Vector3d& pt, double min_clearance);
     
     //  Fast-Planner: Guard/Connector机制

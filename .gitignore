@@ -1,49 +1,70 @@
-# ROS build files
-build/
-devel/
-.catkin_tools/
-.catkin_workspace
-logs/
-*.pyc
-*.pyo
-__pycache__/
-*.swp
-*~
+# ROS / catkin build products
+/build/
+/devel/
+/.catkin_tools/
+/.catkin_workspace
+/logs/
 
-# CMake
+# Nested reference-package build products
+packages/**/build/
+packages/**/devel/
+packages/**/.catkin_tools/
+packages/**/logs/
+
+# CMake generated files
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
-Makefile
+CTestTestfile.cmake
+CTestConfiguration.ini
+CTestCustom.cmake
 
-# IDE
-.vscode/
-.idea/
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# IDE / editor
+/.vscode/
+/.idea/
 *.sublime-*
-
-# Backup files
+*.swp
 *~
+
+# Local documentation and private notes
+/doc/
+/.local_docs/
+/PRIVATE_REAL_RESULTS.txt
+/TEACHING_TARGET_RESULTS_TOPO_MPPI.md
+/PAUSED_TASK_STATE_*.md
+/review_action_plan.md
+/REVIEW_ACTION_INFO_SUPPLEMENT.md
+/AI_ALGORITHM_OPTIMIZATION_ROADMAP.md
+/*.md
+!/README.md
+
+# Benchmark and simulation outputs
+src/benchmark/results/*
+!src/benchmark/results/.gitkeep
+*.bag
+*.log
+*.out
+*.tmp
+*.info
+
+# Archives and generated documents
+*.zip
+*.tar
+*.tar.gz
+*.pdf
+
+# Backup / patch leftovers
 *.bak
 *.backup
 *.old
 *.orig
 *.rej
 
-# Generated outputs
-*.log
-*.out
-*.tmp
-*.zip
-*.bag
-*.pdf
-PRIVATE_REAL_RESULTS.txt
-AI_ALGORITHM_OPTIMIZATION_ROADMAP.md
-.local_docs/
-
 # OS files
 .DS_Store
 Thumbs.db
-
-# Benchmark raw/result data kept local unless explicitly curated
-src/benchmark/results/*.csv
-src/benchmark/results/*.txt

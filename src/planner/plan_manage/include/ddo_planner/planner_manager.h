@@ -155,6 +155,7 @@ namespace ego_planner
                               double *min_dynamic_distance_observed = nullptr) const;
     bool repairSeedPathByClearance(const std::vector<Eigen::Vector3d> &seed_path,
                                    std::vector<Eigen::Vector3d> &repaired_path) const;
+    bool repairBsplineControlPointsByClearance(Eigen::MatrixXd &control_points) const;
     bool rebaseCachedTopoPaths(const Eigen::Vector3d &start_pos,
                                const Eigen::Vector3d &goal_pos,
                                std::vector<TopoPath> &topo_paths) const;
@@ -179,6 +180,7 @@ namespace ego_planner
     double publish_min_z_{0.65};
     double recovery_min_z_{1.0};
     bool planar_flight_z_lock_{false};
+    bool planar_flight_z_lock_dynamic_{false};
     bool last_traj_is_recovery_{false};
     double mode_score_goal_weight_{90.0};
     double mode_score_clearance_weight_{600.0};
@@ -197,6 +199,17 @@ namespace ego_planner
     double static_scene_min_clearance_improvement_{0.08};
     bool static_scene_preferred_clearance_gate_enabled_{false};
     double static_scene_preferred_clearance_score_slack_{80.0};
+    int static_scene_topo_safe_switch_after_failures_{2};
+    bool static_scene_clearance_first_enabled_{false};
+    double static_scene_clearance_first_score_slack_{240.0};
+    double static_scene_clearance_first_reward_{220.0};
+    double static_scene_clearance_first_topo_reward_{60.0};
+    double static_scene_clearance_first_min_improvement_{0.08};
+    double static_scene_clearance_first_progress_margin_{0.12};
+    double static_scene_clearance_first_goal_margin_{1.00};
+    bool publishable_candidate_precheck_enabled_{false};
+    double publishable_candidate_score_slack_{450.0};
+    double publishable_candidate_clearance_reward_{120.0};
     double mode_score_reverse_progress_weight_{350.0};
     double mode_score_weak_progress_weight_{80.0};
     double mode_score_min_progress_{0.25};
@@ -207,6 +220,17 @@ namespace ego_planner
     double mode_score_early_progress_weight_{160.0};
     double mode_score_min_early_progress_{0.05};
     int mode_score_safety_skip_points_{2};
+    bool risk_score_enabled_{true};
+    double risk_score_tail_fraction_{0.25};
+    double risk_score_static_margin_{0.55};
+    double risk_score_static_weight_{450.0};
+    double risk_score_dynamic_margin_{0.80};
+    double risk_score_dynamic_weight_{180.0};
+    bool guide_consistency_score_enabled_{true};
+    double guide_consistency_weight_{160.0};
+    double guide_consistency_check_resolution_{0.20};
+    int guide_consistency_stride_{2};
+    double guide_consistency_max_link_dist_{2.5};
     double mppi_seed_preserve_clearance_{0.35};
     double safe_seed_time_stretch_max_{2.6};
     bool static_scene_preserve_safe_seed_{false};
@@ -219,13 +243,22 @@ namespace ego_planner
     double final_dynamic_static_check_time_{1.2};
     double final_static_check_start_skip_{0.25};
     bool final_fallback_feasibility_repair_{false};
+    bool final_fallback_soft_feasibility_repair_{false};
     bool final_fallback_relaxed_derivative_repair_{false};
     double final_fallback_relaxed_velocity_scale_{0.6};
+    bool short_horizon_fallback_enabled_{false};
+    double short_horizon_fallback_time_{1.2};
+    int short_horizon_fallback_min_points_{8};
     bool final_publish_feasibility_gate_enabled_{false};
     bool geometric_seed_repair_enabled_{false};
     double geometric_seed_repair_clearance_{0.25};
     double geometric_seed_repair_step_{0.18};
     int geometric_seed_repair_iterations_{3};
+    bool bspline_control_point_repair_enabled_{false};
+    double bspline_control_point_repair_clearance_{0.22};
+    double bspline_control_point_repair_step_{0.12};
+    int bspline_control_point_repair_iterations_{2};
+    int bspline_control_point_repair_protect_cols_{1};
     double final_dynamic_min_distance_{0.65};
     double dynamic_publish_preferred_distance_{0.65};
     double dynamic_distance_radius_compensation_{0.0};
@@ -236,6 +269,7 @@ namespace ego_planner
     double static_escape_max_initial_clearance_{0.05};
     double static_escape_min_post_clearance_{0.35};
     int max_mppi_topo_candidates_{4};
+    double topo_prefilter_length_weight_{1.0};
     double topo_prefilter_clearance_weight_{220.0};
     double topo_prefilter_dynamic_weight_{80.0};
     double topo_prefilter_clearance_margin_{0.30};
@@ -244,6 +278,8 @@ namespace ego_planner
     double cached_topo_goal_reuse_max_dist_{1.0};
     bool cache_only_published_topo_paths_{true};
     bool prefer_cached_topo_paths_{false};
+    bool cached_topo_allow_near_obstacle_{false};
+    double cached_topo_min_raw_clearance_{0.0};
     bool has_cached_topo_paths_{false};
     Eigen::Vector3d cached_topo_goal_{Eigen::Vector3d::Zero()};
     std::vector<TopoPath> cached_topo_paths_;

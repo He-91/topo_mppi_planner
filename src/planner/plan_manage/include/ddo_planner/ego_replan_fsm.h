@@ -65,7 +65,9 @@ namespace ego_planner
     double dynamic_exec_safety_horizon_{1.0};
     double dynamic_exec_safety_step_{0.05};
     double dynamic_exec_emergency_time_{0.45};
+    double dynamic_exec_replan_cooldown_{0.25};
     ros::Time last_dynamic_emergency_time_;
+    ros::Time last_dynamic_safety_replan_time_;
 
     /* planning data */
     bool trigger_, have_target_, have_odom_, have_new_target_;
